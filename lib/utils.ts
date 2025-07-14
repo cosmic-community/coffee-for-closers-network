@@ -155,7 +155,7 @@ export function debounce<T extends (...args: any[]) => void>(
   }
 }
 
-export function generateChatTitle(user1: string, user2: string): string {
+export function generateChatTitle(user1: string | undefined, user2: string | undefined): string {
   const name1 = user1 || 'User'
   const name2 = user2 || 'User'
   return `${name1} & ${name2} Coffee Chat`
