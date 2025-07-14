@@ -1,39 +1,50 @@
 import { Users, MessageSquare, Calendar, TrendingUp } from 'lucide-react'
 
 interface AdminStatsProps {
-  stats: {
-    totalUsers: number
-    activeUsers: number
-    totalPosts: number
-    totalChats: number
-    completedChats: number
-    userGrowth: number
+  totalUsers: number
+  activeUsers: number
+  totalChats: number
+  totalPosts: number
+  matchingStats: {
+    totalMatches: number
+    completedMatches: number
+    cancelledMatches: number
+    upcomingMatches: number
+    averageRating: number
   }
 }
 
-export function AdminStats({ stats }: AdminStatsProps) {
+export function AdminStats({ 
+  totalUsers, 
+  activeUsers, 
+  totalChats, 
+  totalPosts, 
+  matchingStats 
+}: AdminStatsProps) {
+  const userGrowth = 12 // Calculate this based on historical data
+  
   const statItems = [
     {
       name: 'Total Users',
-      value: stats.totalUsers,
+      value: totalUsers,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
-      change: `+${stats.userGrowth}%`,
+      change: `+${userGrowth}%`,
       changeColor: 'text-green-600'
     },
     {
       name: 'Active Users',
-      value: stats.activeUsers,
+      value: activeUsers,
       icon: TrendingUp,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
-      change: `${Math.round((stats.activeUsers / stats.totalUsers) * 100)}%`,
+      change: `${Math.round((activeUsers / totalUsers) * 100)}%`,
       changeColor: 'text-green-600'
     },
     {
       name: 'Community Posts',
-      value: stats.totalPosts,
+      value: totalPosts,
       icon: MessageSquare,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
@@ -42,11 +53,11 @@ export function AdminStats({ stats }: AdminStatsProps) {
     },
     {
       name: 'Coffee Chats',
-      value: stats.completedChats,
+      value: matchingStats.completedMatches,
       icon: Calendar,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',
-      change: `${stats.totalChats} total`,
+      change: `${totalChats} total`,
       changeColor: 'text-gray-600'
     }
   ]

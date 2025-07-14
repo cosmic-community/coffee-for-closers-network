@@ -1,29 +1,59 @@
-import { getServerSession } from 'next-auth'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { ChatsList } from '@/components/dashboard/chats-list'
 import { ChatFilters } from '@/components/dashboard/chat-filters'
 import { getUserChats, getUserById } from '@/lib/cosmic'
-import { Metadata } from 'next'
+import { User, CoffeeChat, ChatStatus } from '@/types'
 
-export const metadata: Metadata = {
-  title: 'My Chats - Coffee Closer Network',
-  description: 'View and manage your coffee chat history and upcoming meetings.',
-}
+type TimeRange = 'all' | 'upcoming' | 'past'
 
-export default async function ChatsPage() {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user) {
-    redirect('/auth/signin')
+export default function ChatsPage() {
+  const { data: session, status } = useSession()
+  const [user, setUser] = useState<User | null>(null)
+  const [userChats, setUserChats] = useState<CoffeeChat[]>([])
+  const [selectedStatus, setSelectedStatus] = useState<ChatStatus | 'all'>('all')
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('all')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      redirect('/auth/signin')
+    }
+
+    if (status === 'authenticated' && session?.user) {
+      const fetchData = async () => {
+        try {
+          const userId = (session.user as any).cosmicId
+          const [userData, chatsData] = await Promise.all([
+            getUserById(userId),
+            getUserChats(userId)
+          ])
+          setUser(userData)
+          setUserChats(chatsData)
+        } catch (error) {
+          console.error('Error fetching data:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      fetchData()
+    }
+  }, [session, status])
+
+  if (status === 'loading' || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    )
   }
-
-  const userId = (session.user as any).cosmicId
-  const [user, userChats] = await Promise.all([
-    getUserById(userId),
-    getUserChats(userId)
-  ])
 
   if (!user) {
     redirect('/auth/signin')
@@ -45,8 +75,16 @@ export default async function ChatsPage() {
           </div>
           
           <div className="p-6">
-            <ChatFilters />
-            <ChatsList chats={userChats} currentUserId={userId} />
+            <ChatFilters
+              selectedStatus={selectedStatus}
+              selectedTimeRange={selectedTimeRange}
+              onStatusChange={setSelectedStatus}
+              onTimeRangeChange={setSelectedTimeRange}
+            />
+            <ChatsList 
+              chats={userChats} 
+              currentUserId={(session?.user as any)?.cosmicId || ''}
+            />
           </div>
         </div>
       </main>

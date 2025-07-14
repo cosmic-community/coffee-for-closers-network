@@ -4,14 +4,11 @@ import { Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 interface RelatedPostsProps {
-  posts: BlogArticle[]
-  currentPostId: string
+  articles: BlogArticle[]
 }
 
-export function RelatedPosts({ posts, currentPostId }: RelatedPostsProps) {
-  const relatedPosts = posts.filter(post => post.id !== currentPostId).slice(0, 3)
-
-  if (relatedPosts.length === 0) {
+export function RelatedPosts({ articles }: RelatedPostsProps) {
+  if (articles.length === 0) {
     return null
   }
 
@@ -22,7 +19,7 @@ export function RelatedPosts({ posts, currentPostId }: RelatedPostsProps) {
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {relatedPosts.map((post) => (
+        {articles.map((post) => (
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}

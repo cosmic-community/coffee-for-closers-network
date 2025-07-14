@@ -1,12 +1,16 @@
+'use client'
+
 import { useState } from 'react'
 import { ChatStatus } from '@/types'
 import { Filter, Calendar, Clock } from 'lucide-react'
 
+type TimeRange = 'all' | 'upcoming' | 'past'
+
 interface ChatFiltersProps {
   selectedStatus: ChatStatus | 'all'
-  selectedTimeRange: 'all' | 'upcoming' | 'past'
+  selectedTimeRange: TimeRange
   onStatusChange: (status: ChatStatus | 'all') => void
-  onTimeRangeChange: (range: 'all' | 'upcoming' | 'past') => void
+  onTimeRangeChange: (range: TimeRange) => void
 }
 
 export function ChatFilters({
@@ -19,17 +23,25 @@ export function ChatFilters({
 
   const statusOptions = [
     { key: 'all' as const, value: 'All Status' },
-    { key: 'scheduled', value: 'Scheduled' },
-    { key: 'completed', value: 'Completed' },
-    { key: 'cancelled', value: 'Cancelled' },
-    { key: 'no-show', value: 'No Show' }
+    { key: 'scheduled' as ChatStatus, value: 'Scheduled' },
+    { key: 'completed' as ChatStatus, value: 'Completed' },
+    { key: 'cancelled' as ChatStatus, value: 'Cancelled' },
+    { key: 'no-show' as ChatStatus, value: 'No Show' }
   ]
 
   const timeRangeOptions = [
-    { key: 'all' as const, value: 'All Time' },
-    { key: 'upcoming', value: 'Upcoming' },
-    { key: 'past', value: 'Past' }
+    { key: 'all' as TimeRange, value: 'All Time' },
+    { key: 'upcoming' as TimeRange, value: 'Upcoming' },
+    { key: 'past' as TimeRange, value: 'Past' }
   ]
+
+  const handleStatusChange = (status: string) => {
+    onStatusChange(status as ChatStatus | 'all')
+  }
+
+  const handleTimeRangeChange = (range: string) => {
+    onTimeRangeChange(range as TimeRange)
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
@@ -60,7 +72,7 @@ export function ChatFilters({
             {statusOptions.map((status) => (
               <button
                 key={status.key}
-                onClick={() => onStatusChange(status.key as ChatStatus | 'all')}
+                onClick={() => handleStatusChange(status.key)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   selectedStatus === status.key
                     ? 'bg-primary-600 text-white'
@@ -83,7 +95,7 @@ export function ChatFilters({
             {timeRangeOptions.map((range) => (
               <button
                 key={range.key}
-                onClick={() => onTimeRangeChange(range.key)}
+                onClick={() => handleTimeRangeChange(range.key)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   selectedTimeRange === range.key
                     ? 'bg-primary-600 text-white'
@@ -111,7 +123,7 @@ export function ChatFilters({
                 <button
                   key={status.key}
                   onClick={() => {
-                    onStatusChange(status.key as ChatStatus | 'all')
+                    handleStatusChange(status.key)
                     setShowFilters(false)
                   }}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
@@ -137,7 +149,7 @@ export function ChatFilters({
                 <button
                   key={range.key}
                   onClick={() => {
-                    onTimeRangeChange(range.key)
+                    handleTimeRangeChange(range.key)
                     setShowFilters(false)
                   }}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${

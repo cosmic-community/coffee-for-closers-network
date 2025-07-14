@@ -156,7 +156,9 @@ export function debounce<T extends (...args: any[]) => void>(
 }
 
 export function generateChatTitle(user1: string, user2: string): string {
-  return `${user1} & ${user2} Coffee Chat`
+  const name1 = user1 || 'User'
+  const name2 = user2 || 'User'
+  return `${name1} & ${name2} Coffee Chat`
 }
 
 export function getAvailabilitySlots(): string[] {
@@ -237,4 +239,25 @@ export function optimizeImage(url: string | undefined, options: {
   
   const separator = url.includes('?') ? '&' : '?'
   return `${url}${separator}${params.toString()}`
+}
+
+export function formatRelativeTime(date: string | Date): string {
+  const now = new Date()
+  const then = new Date(date)
+  const diffInMs = now.getTime() - then.getTime()
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  const diffInDays = Math.floor(diffInHours / 24)
+
+  if (diffInMinutes < 1) {
+    return 'just now'
+  } else if (diffInMinutes < 60) {
+    return `${diffInMinutes}m ago`
+  } else if (diffInHours < 24) {
+    return `${diffInHours}h ago`
+  } else if (diffInDays < 7) {
+    return `${diffInDays}d ago`
+  } else {
+    return formatDate(date)
+  }
 }

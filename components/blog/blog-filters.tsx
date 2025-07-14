@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { BlogCategory } from '@/types'
 import { Search, Filter, X } from 'lucide-react'

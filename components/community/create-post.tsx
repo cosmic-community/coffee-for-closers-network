@@ -1,23 +1,20 @@
+'use client'
+
 import { useState } from 'react'
 import { PostType } from '@/types'
 import { Image, Send, X } from 'lucide-react'
 
 interface CreatePostProps {
-  onSubmit: (data: {
-    content: string
-    postType: PostType
-    tags: string[]
-    image?: File
-  }) => void
-  isLoading?: boolean
+  userId: string
 }
 
-export function CreatePost({ onSubmit, isLoading = false }: CreatePostProps) {
+export function CreatePost({ userId }: CreatePostProps) {
   const [content, setContent] = useState('')
   const [postType, setPostType] = useState<PostType>('general')
   const [tags, setTags] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const postTypes: Array<{ key: PostType; value: string }> = [
     { key: 'tip', value: 'Sales Tip' },
@@ -39,28 +36,38 @@ export function CreatePost({ onSubmit, isLoading = false }: CreatePostProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!content.trim()) return
 
-    const tagArray = tags
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
+    setIsLoading(true)
 
-    onSubmit({
-      content: content.trim(),
-      postType,
-      tags: tagArray,
-      image: image || undefined
-    })
+    try {
+      const tagArray = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0)
 
-    // Reset form
-    setContent('')
-    setTags('')
-    setImage(null)
-    setImagePreview(null)
-    setPostType('general')
+      // TODO: Implement post creation
+      console.log('Creating post:', {
+        content: content.trim(),
+        postType,
+        tags: tagArray,
+        image,
+        userId
+      })
+
+      // Reset form
+      setContent('')
+      setTags('')
+      setImage(null)
+      setImagePreview(null)
+      setPostType('general')
+    } catch (error) {
+      console.error('Error creating post:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const removeImage = () => {

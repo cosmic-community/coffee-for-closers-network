@@ -1,5 +1,12 @@
-import { formatRelativeTime } from '@/lib/utils'
-import { User, MessageSquare, Calendar, UserPlus } from 'lucide-react'
+import { formatDateTime } from '@/lib/utils'
+import { User as UserIcon, MessageSquare, Calendar, UserPlus } from 'lucide-react'
+import { User, Post, CoffeeChat } from '@/types'
+
+interface RecentActivityProps {
+  recentUsers: User[]
+  recentPosts: Post[]
+  recentChats: CoffeeChat[]
+}
 
 interface Activity {
   id: string
@@ -12,11 +19,60 @@ interface Activity {
   timestamp: string
 }
 
-interface RecentActivityProps {
-  activities: Activity[]
-}
+export function RecentActivity({ recentUsers, recentPosts, recentChats }: RecentActivityProps) {
+  // Transform data into activity items
+  const activities: Activity[] = []
 
-export function RecentActivity({ activities }: RecentActivityProps) {
+  // Add user activities
+  recentUsers.forEach(user => {
+    activities.push({
+      id: `user-${user.id}`,
+      type: 'user_joined',
+      user: {
+        name: user.metadata.full_name || user.title,
+        avatar: user.metadata.profile_photo?.imgix_url
+      },
+      details: `joined the community`,
+      timestamp: user.created_at
+    })
+  })
+
+  // Add post activities
+  recentPosts.forEach(post => {
+    activities.push({
+      id: `post-${post.id}`,
+      type: 'post_created',
+      user: {
+        name: post.metadata.author?.metadata?.full_name || post.metadata.author?.title || 'Unknown User',
+        avatar: post.metadata.author?.metadata?.profile_photo?.imgix_url
+      },
+      details: `created a new post`,
+      timestamp: post.created_at
+    })
+  })
+
+  // Add chat activities
+  recentChats.forEach(chat => {
+    if (chat.metadata.status?.key === 'completed') {
+      activities.push({
+        id: `chat-${chat.id}`,
+        type: 'chat_completed',
+        user: {
+          name: chat.metadata.participant_1?.metadata?.full_name || chat.metadata.participant_1?.title || 'Unknown User',
+          avatar: chat.metadata.participant_1?.metadata?.profile_photo?.imgix_url
+        },
+        details: `completed a coffee chat`,
+        timestamp: chat.metadata.scheduled_date || chat.created_at
+      })
+    }
+  })
+
+  // Sort by timestamp (most recent first)
+  activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+
+  // Take only the first 10 activities
+  const recentActivities = activities.slice(0, 10)
+
   const getActivityIcon = (type: Activity['type']) => {
     switch (type) {
       case 'user_joined':
@@ -26,9 +82,9 @@ export function RecentActivity({ activities }: RecentActivityProps) {
       case 'chat_completed':
         return <Calendar className="h-4 w-4 text-purple-600" />
       case 'user_updated':
-        return <User className="h-4 w-4 text-gray-600" />
+        return <UserIcon className="h-4 w-4 text-gray-600" />
       default:
-        return <User className="h-4 w-4 text-gray-600" />
+        return <UserIcon className="h-4 w-4 text-gray-600" />
     }
   }
 
@@ -47,6 +103,27 @@ export function RecentActivity({ activities }: RecentActivityProps) {
     }
   }
 
+  const formatRelativeTime = (date: string): string => {
+    const now = new Date()
+    const then = new Date(date)
+    const diffInMs = now.getTime() - then.getTime()
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    const diffInDays = Math.floor(diffInHours / 24)
+
+    if (diffInMinutes < 1) {
+      return 'just now'
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h ago`
+    } else if (diffInDays < 7) {
+      return `${diffInDays}d ago`
+    } else {
+      return formatDateTime(date)
+    }
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
       <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
@@ -54,12 +131,12 @@ export function RecentActivity({ activities }: RecentActivityProps) {
       </h3>
       
       <div className="space-y-4">
-        {activities.length === 0 ? (
+        {recentActivities.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">
             No recent activity to display.
           </p>
         ) : (
-          activities.map((activity) => (
+          recentActivities.map((activity) => (
             <div key={activity.id} className="flex items-start space-x-3">
               <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
                 {getActivityIcon(activity.type)}
@@ -93,26 +170,4 @@ export function RecentActivity({ activities }: RecentActivityProps) {
       </div>
     </div>
   )
-}
-
-// Helper function for relative time formatting
-function formatRelativeTime(date: string): string {
-  const now = new Date()
-  const then = new Date(date)
-  const diffInMs = now.getTime() - then.getTime()
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
-  const diffInHours = Math.floor(diffInMinutes / 60)
-  const diffInDays = Math.floor(diffInHours / 24)
-
-  if (diffInMinutes < 1) {
-    return 'just now'
-  } else if (diffInMinutes < 60) {
-    return `${diffInMinutes}m ago`
-  } else if (diffInHours < 24) {
-    return `${diffInHours}h ago`
-  } else if (diffInDays < 7) {
-    return `${diffInDays}d ago`
-  } else {
-    return then.toLocaleDateString()
-  }
 }

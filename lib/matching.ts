@@ -50,9 +50,9 @@ export async function generateWeeklyMatches(
       }
       
       const chatData: CreateChatData = {
-        title: generateChatTitle(user1.metadata.full_name, user2.metadata.full_name),
+        title: generateChatTitle(user1.metadata.full_name || user1.title, user2.metadata.full_name || user2.title),
         metadata: {
-          chat_title: generateChatTitle(user1.metadata.full_name, user2.metadata.full_name),
+          chat_title: generateChatTitle(user1.metadata.full_name || user1.title, user2.metadata.full_name || user2.title),
           participant_1: user1.id,
           participant_2: user2.id,
           scheduled_date: scheduledDate,
@@ -292,13 +292,13 @@ export function getMatchingStats(chats: CoffeeChat[]): {
 } {
   const totalMatches = chats.length
   const completedMatches = chats.filter(chat => 
-    chat.metadata.status.key === 'completed'
+    chat.metadata.status?.key === 'completed'
   ).length
   const cancelledMatches = chats.filter(chat => 
-    chat.metadata.status.key === 'cancelled'
+    chat.metadata.status?.key === 'cancelled'
   ).length
   const upcomingMatches = chats.filter(chat => 
-    chat.metadata.status.key === 'scheduled'
+    chat.metadata.status?.key === 'scheduled'
   ).length
 
   const ratingsWithValues = chats

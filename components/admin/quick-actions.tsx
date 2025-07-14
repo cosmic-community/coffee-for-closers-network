@@ -1,55 +1,71 @@
 import { Plus, Users, MessageSquare, Calendar, Settings, Mail } from 'lucide-react'
+import { AdminSettings } from '@/types'
 
 interface QuickActionsProps {
-  onCreateUser: () => void
-  onCreatePost: () => void
-  onScheduleChat: () => void
-  onSendNewsletter: () => void
-  onViewSettings: () => void
+  settings: AdminSettings | null
 }
 
-export function QuickActions({ 
-  onCreateUser, 
-  onCreatePost, 
-  onScheduleChat, 
-  onSendNewsletter, 
-  onViewSettings 
-}: QuickActionsProps) {
+export function QuickActions({ settings }: QuickActionsProps) {
+  const handleCreateUser = () => {
+    // TODO: Implement create user functionality
+    console.log('Create user')
+  }
+
+  const handleCreatePost = () => {
+    // TODO: Implement create post functionality
+    console.log('Create post')
+  }
+
+  const handleScheduleChat = () => {
+    // TODO: Implement schedule chat functionality
+    console.log('Schedule chat')
+  }
+
+  const handleSendNewsletter = () => {
+    // TODO: Implement send newsletter functionality
+    console.log('Send newsletter')
+  }
+
+  const handleViewSettings = () => {
+    // TODO: Implement view settings functionality
+    console.log('View settings')
+  }
+
   const actions = [
     {
       name: 'Create User',
       description: 'Add a new member to the community',
       icon: Users,
       color: 'bg-blue-600 hover:bg-blue-700',
-      action: onCreateUser
+      action: handleCreateUser
     },
     {
       name: 'Create Post',
       description: 'Share a new community post',
       icon: MessageSquare,
       color: 'bg-green-600 hover:bg-green-700',
-      action: onCreatePost
+      action: handleCreatePost
     },
     {
       name: 'Schedule Chat',
       description: 'Manually schedule a coffee chat',
       icon: Calendar,
       color: 'bg-purple-600 hover:bg-purple-700',
-      action: onScheduleChat
+      action: handleScheduleChat
     },
     {
       name: 'Send Newsletter',
       description: 'Send update to all members',
       icon: Mail,
       color: 'bg-yellow-600 hover:bg-yellow-700',
-      action: onSendNewsletter
+      action: handleSendNewsletter
     },
     {
       name: 'System Settings',
       description: 'Configure community settings',
       icon: Settings,
       color: 'bg-gray-600 hover:bg-gray-700',
-      action: onViewSettings
+      action: handleViewSettings
     }
   ]
 

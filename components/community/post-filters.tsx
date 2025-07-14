@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { PostType } from '@/types'
 import { Filter, X } from 'lucide-react'
