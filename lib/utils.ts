@@ -238,7 +238,7 @@ export function optimizeImage(url: string | undefined, options: {
   if (format) params.append('auto', format)
   
   const separator = url.includes('?') ? '&' : '?'
-  return `${url}${separator}${params.toString()}`
+  return url + separator + params.toString()
 }
 
 export function formatRelativeTime(date: string | Date): string {
