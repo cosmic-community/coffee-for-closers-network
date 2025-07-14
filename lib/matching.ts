@@ -20,22 +20,18 @@ export async function generateWeeklyMatches(
   } = options
 
   try {
-    // Get all active users
     const activeUsers = await getActiveUsers()
     
     if (activeUsers.length < 2) {
       return []
     }
 
-    // Get existing chats to avoid recent matches
     const existingChats = excludeRecentMatches ? await getAllChats() : []
     
-    // Filter users who have availability
     const availableUsers = activeUsers.filter(user => 
       user.metadata.availability && user.metadata.availability.length > 0
     )
 
-    // Generate potential matches
     const matches = await findOptimalMatches(
       availableUsers,
       existingChats,
@@ -44,11 +40,14 @@ export async function generateWeeklyMatches(
       preferDifferentExperience
     )
 
-    // Create chat records
     const createdChats: CoffeeChat[] = []
     
     for (const match of matches) {
       const { user1, user2, scheduledDate } = match
+      
+      if (!user1 || !user2) {
+        continue
+      }
       
       const chatData: CreateChatData = {
         title: generateChatTitle(user1.metadata.full_name, user2.metadata.full_name),
@@ -85,23 +84,25 @@ async function findOptimalMatches(
   const userChatCounts = new Map<string, number>()
   const recentMatches = getRecentMatches(existingChats)
 
-  // Initialize chat counts
   users.forEach(user => {
     userChatCounts.set(user.id, 0)
   })
 
-  // Count existing chats for this week
   const currentWeek = getWeekOfMatch()
   existingChats.forEach(chat => {
     if (chat.metadata.week_of_match === currentWeek) {
-      const p1Count = userChatCounts.get(chat.metadata.participant_1.id) || 0
-      const p2Count = userChatCounts.get(chat.metadata.participant_2.id) || 0
-      userChatCounts.set(chat.metadata.participant_1.id, p1Count + 1)
-      userChatCounts.set(chat.metadata.participant_2.id, p2Count + 1)
+      const p1 = chat.metadata.participant_1
+      const p2 = chat.metadata.participant_2
+      
+      if (p1 && p2) {
+        const p1Count = userChatCounts.get(p1.id) || 0
+        const p2Count = userChatCounts.get(p2.id) || 0
+        userChatCounts.set(p1.id, p1Count + 1)
+        userChatCounts.set(p2.id, p2Count + 1)
+      }
     }
   })
 
-  // Generate all possible pairs
   const potentialPairs: Array<{
     user1: User
     user2: User
@@ -114,7 +115,10 @@ async function findOptimalMatches(
       const user1 = users[i]
       const user2 = users[j]
 
-      // Skip if either user has reached max chats
+      if (!user1 || !user2) {
+        continue
+      }
+
       if (
         (userChatCounts.get(user1.id) || 0) >= maxChatsPerWeek ||
         (userChatCounts.get(user2.id) || 0) >= maxChatsPerWeek
@@ -122,19 +126,16 @@ async function findOptimalMatches(
         continue
       }
 
-      // Skip if they've been matched recently
       if (recentMatches.has(`${user1.id}-${user2.id}`) || 
           recentMatches.has(`${user2.id}-${user1.id}`)) {
         continue
       }
 
-      // Check for overlapping availability
       const commonAvailability = findCommonAvailability(user1, user2)
       if (commonAvailability.length === 0) {
         continue
       }
 
-      // Calculate match score
       const score = calculateMatchScore(
         user1,
         user2,
@@ -142,28 +143,25 @@ async function findOptimalMatches(
         preferDifferentExperience
       )
 
-      // Pick a random common availability slot
       const randomSlot = commonAvailability[
         Math.floor(Math.random() * commonAvailability.length)
       ]
       
-      const scheduledDate = getNextDateForSlot(randomSlot)
+      if (randomSlot) {
+        const scheduledDate = getNextDateForSlot(randomSlot)
 
-      potentialPairs.push({
-        user1,
-        user2,
-        score,
-        scheduledDate
-      })
+        potentialPairs.push({
+          user1,
+          user2,
+          score,
+          scheduledDate
+        })
+      }
     }
   }
 
-  // Sort by score (highest first)
   potentialPairs.sort((a, b) => b.score - a.score)
 
-  // Select matches, ensuring no user appears more than maxChatsPerWeek times
-  const selectedUsers = new Set<string>()
-  
   for (const pair of potentialPairs) {
     const user1ChatCount = userChatCounts.get(pair.user1.id) || 0
     const user2ChatCount = userChatCounts.get(pair.user2.id) || 0
@@ -175,7 +173,6 @@ async function findOptimalMatches(
         scheduledDate: pair.scheduledDate
       })
 
-      // Update chat counts
       userChatCounts.set(pair.user1.id, user1ChatCount + 1)
       userChatCounts.set(pair.user2.id, user2ChatCount + 1)
     }
@@ -201,7 +198,6 @@ function calculateMatchScore(
 ): number {
   let score = 0
 
-  // Timezone compatibility
   const user1Timezone = user1.metadata.timezone?.key || 'EST'
   const user2Timezone = user2.metadata.timezone?.key || 'EST'
   
@@ -209,7 +205,6 @@ function calculateMatchScore(
     if (user1Timezone === user2Timezone) {
       score += 10
     } else {
-      // Penalize large timezone differences
       const timezoneOffset = Math.abs(
         getTimezoneOffset(user1Timezone) - getTimezoneOffset(user2Timezone)
       )
@@ -217,7 +212,6 @@ function calculateMatchScore(
     }
   }
 
-  // Experience level diversity
   const user1Experience = user1.metadata.years_experience?.key || '0-2'
   const user2Experience = user2.metadata.years_experience?.key || '0-2'
   
@@ -227,7 +221,6 @@ function calculateMatchScore(
     }
   }
 
-  // Industry overlap
   const user1Industries = user1.metadata.industry_focus || []
   const user2Industries = user2.metadata.industry_focus || []
   
@@ -237,7 +230,6 @@ function calculateMatchScore(
   
   score += commonIndustries.length * 2
 
-  // Availability overlap (more overlap = better match)
   const commonAvailability = findCommonAvailability(user1, user2)
   score += commonAvailability.length
 
@@ -252,10 +244,13 @@ function getRecentMatches(existingChats: CoffeeChat[]): Set<string> {
   existingChats.forEach(chat => {
     const chatDate = new Date(chat.metadata.scheduled_date)
     if (chatDate >= threeWeeksAgo) {
-      const p1Id = chat.metadata.participant_1.id
-      const p2Id = chat.metadata.participant_2.id
-      recentMatches.add(`${p1Id}-${p2Id}`)
-      recentMatches.add(`${p2Id}-${p1Id}`)
+      const p1 = chat.metadata.participant_1
+      const p2 = chat.metadata.participant_2
+      
+      if (p1 && p2) {
+        recentMatches.add(`${p1.id}-${p2.id}`)
+        recentMatches.add(`${p2.id}-${p1.id}`)
+      }
     }
   })
 
@@ -271,17 +266,19 @@ function getWeekOfMatch(): string {
 }
 
 function getNextDateForSlot(slot: string): string {
-  const [dayName, period] = slot.split(' ')
-  const dayIndex = {
+  const [dayName] = slot.split(' ')
+  const dayIndex: Record<string, number> = {
     'Monday': 1,
     'Tuesday': 2,
     'Wednesday': 3,
     'Thursday': 4,
     'Friday': 5
-  }[dayName] || 1
+  }
+
+  const targetDay = dayIndex[dayName || 'Monday'] || 1
 
   const nextWeek = new Date()
-  nextWeek.setDate(nextWeek.getDate() + (7 - nextWeek.getDay()) + dayIndex)
+  nextWeek.setDate(nextWeek.getDate() + (7 - nextWeek.getDay()) + targetDay)
   
   return nextWeek.toISOString().split('T')[0]
 }
@@ -328,23 +325,23 @@ export function canGenerateMatches(settings: any): boolean {
 
 export function getNextMatchingDate(settings: any): Date {
   const matchDay = settings?.metadata?.weekly_match_day?.key || 'monday'
-  const dayIndex = {
+  const dayIndex: Record<string, number> = {
     'monday': 1,
     'tuesday': 2,
     'wednesday': 3,
     'thursday': 4,
     'friday': 5
-  }[matchDay] || 1
+  }
+
+  const targetDay = dayIndex[matchDay] || 1
 
   const now = new Date()
   const nextDate = new Date(now)
   
-  // Find next occurrence of the matching day
   const currentDay = now.getDay()
-  const daysUntilMatch = (dayIndex - currentDay + 7) % 7
+  const daysUntilMatch = (targetDay - currentDay + 7) % 7
   
   if (daysUntilMatch === 0) {
-    // Today is the matching day, set to next week
     nextDate.setDate(now.getDate() + 7)
   } else {
     nextDate.setDate(now.getDate() + daysUntilMatch)

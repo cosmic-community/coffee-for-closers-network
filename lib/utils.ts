@@ -116,7 +116,6 @@ export function getStatusColor(status: string): string {
 }
 
 export function parseScheduledDate(dateString: string): Date {
-  // Handle various date formats that might come from the CMS
   const date = new Date(dateString)
   return isNaN(date.getTime()) ? new Date() : date
 }
@@ -220,7 +219,7 @@ export function isPastDue(date: string | Date): boolean {
   return eventDate < now
 }
 
-export function optimizeImage(url: string, options: {
+export function optimizeImage(url: string | undefined, options: {
   width?: number
   height?: number
   quality?: number

@@ -1,6 +1,6 @@
 import { CoffeeChat } from '@/types'
-import { formatDate, formatTime } from '@/lib/utils'
-import { Calendar, Clock, ExternalLink } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
+import { Calendar, Clock, ExternalLink, Coffee } from 'lucide-react'
 
 interface UpcomingChatsProps {
   chats: CoffeeChat[]

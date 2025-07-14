@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { User } from '@/types'
+import { User, TimeZoneKey, ExperienceLevel } from '@/types'
 import { updateUser } from '@/lib/cosmic'
 import { getAvailabilitySlots, getTimezoneOptions, getExperienceLevels, getIndustryOptions } from '@/lib/utils'
 import { Loader2, Save } from 'lucide-react'
@@ -17,9 +17,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
     jobTitle: user.metadata.job_title || '',
     company: user.metadata.company || '',
     bio: user.metadata.bio || '',
-    timezone: user.metadata.timezone?.key || 'EST',
+    timezone: user.metadata.timezone?.key || 'EST' as TimeZoneKey,
     availability: user.metadata.availability || [],
-    yearsExperience: user.metadata.years_experience?.key || '0-2',
+    yearsExperience: user.metadata.years_experience?.key || '0-2' as ExperienceLevel,
     industryFocus: user.metadata.industry_focus || [],
     linkedinUrl: user.metadata.linkedin_url || '',
     twitterUrl: user.metadata.twitter_url || '',
@@ -36,7 +36,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         title: formData.fullName,
         metadata: {
           full_name: formData.fullName,
-          email: user.metadata.email, // Keep existing email
+          email: user.metadata.email,
           role: user.metadata.role.key,
           job_title: formData.jobTitle,
           company: formData.company,
@@ -146,7 +146,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           <select
             id="timezone"
             value={formData.timezone}
-            onChange={(e) => setFormData(prev => ({ ...prev, timezone: e.target.value }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, timezone: e.target.value as TimeZoneKey }))}
             className="select mt-1"
           >
             {getTimezoneOptions().map(option => (
@@ -164,7 +164,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           <select
             id="yearsExperience"
             value={formData.yearsExperience}
-            onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value as ExperienceLevel }))}
             className="select mt-1"
           >
             {getExperienceLevels().map(option => (

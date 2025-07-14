@@ -17,9 +17,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // For demo purposes, we'll use a simple email-based lookup
-          // In production, you'd implement proper password hashing and validation
-          const emailSlug = credentials.email.split('@')[0].toLowerCase()
+          const emailSlug = credentials.email.split('@')[0]?.toLowerCase()
+          if (!emailSlug) {
+            return null
+          }
+
           const user = await getUserBySlug(emailSlug)
 
           if (!user || !user.metadata.active_member) {
@@ -50,15 +52,14 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role
-        (session.user as any).cosmicId = token.cosmicId
+        (session.user as any).role = token.role as string
+        (session.user as any).cosmicId = token.cosmicId as string
       }
       return session
     }
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
   },
   session: {
     strategy: 'jwt',

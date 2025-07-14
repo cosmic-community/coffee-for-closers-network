@@ -183,7 +183,7 @@ export type CTAType = 'homepage-hero' | 'homepage-secondary' | 'blog-sidebar' | 
 export type WeekDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday';
 
 // API response types
-export interface CosmicResponse<T> {
+export interface CosmicResponse<T extends CosmicObject> {
   objects: T[];
   total: number;
   limit?: number;
@@ -235,8 +235,8 @@ export interface CreateChatData {
 }
 
 // Utility types
-export type OptionalMetadata<T> = Partial<T['metadata']>;
-export type CreateData<T> = Omit<T, 'id' | 'created_at' | 'modified_at'>;
+export type OptionalMetadata<T extends CosmicObject> = Partial<T['metadata']>;
+export type CreateData<T extends CosmicObject> = Omit<T, 'id' | 'created_at' | 'modified_at'>;
 
 // Auth types
 export interface AuthUser {
