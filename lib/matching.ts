@@ -262,7 +262,7 @@ function getWeekOfMatch(): string {
   const monday = new Date(now)
   monday.setDate(now.getDate() - now.getDay() + 1)
   
-  return monday.toISOString().split('T')[0]
+  return monday.toISOString().split('T')[0] || ''
 }
 
 function getNextDateForSlot(slot: string): string {
@@ -280,7 +280,7 @@ function getNextDateForSlot(slot: string): string {
   const nextWeek = new Date()
   nextWeek.setDate(nextWeek.getDate() + (7 - nextWeek.getDay()) + targetDay)
   
-  return nextWeek.toISOString().split('T')[0]
+  return nextWeek.toISOString().split('T')[0] || ''
 }
 
 export function getMatchingStats(chats: CoffeeChat[]): {
