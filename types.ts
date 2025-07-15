@@ -9,7 +9,7 @@ export interface User {
     role: {
       key: string
       value: string
-    }
+    } | string
     job_title: string
     company: string
     bio: string
@@ -23,12 +23,12 @@ export interface User {
     timezone: {
       key: string
       value: string
-    }
+    } | string
     availability: string[]
     years_experience: {
       key: string
       value: string
-    }
+    } | string
     industry_focus: string[]
     active_member: boolean
     join_date: string
@@ -193,3 +193,59 @@ export interface CreateChatData {
     auto_generated: boolean
   }
 }
+
+// Form interfaces
+export interface SignUpFormData {
+  fullName: string
+  email: string
+  password: string
+  jobTitle: string
+  company: string
+  bio: string
+  timezone: string
+  availability: string[]
+  yearsExperience: string
+  industryFocus: string[]
+  linkedinUrl: string
+  twitterUrl: string
+  websiteUrl: string
+}
+
+export interface CreateUserData {
+  title: string
+  slug: string
+  metadata: {
+    full_name: string
+    email: string
+    role: string
+    job_title: string
+    company: string
+    bio: string
+    timezone: string
+    availability: string[]
+    years_experience: string
+    industry_focus: string[]
+    linkedin_url: string
+    twitter_url: string
+    website_url: string
+    active_member: boolean
+    join_date: string
+    last_active: string
+  }
+}
+
+// API Response interfaces
+export interface CosmicResponse<T> {
+  object?: T
+  objects?: T[]
+  total?: number
+}
+
+export interface CosmicError {
+  message: string
+  status?: number
+}
+
+// Utility types
+export type OptionalExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
+export type RequiredExcept<T, K extends keyof T> = Required<T> & Partial<Pick<T, K>>

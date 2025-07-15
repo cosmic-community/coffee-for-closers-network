@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const emailSlug = credentials.email.split('@')[0]?.toLowerCase()
+          const emailSlug = credentials.email.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '-')
           if (!emailSlug) {
             return null
           }
@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.metadata.email,
             name: user.metadata.full_name,
-            role: user.metadata.role.key,
+            role: user.metadata.role.key || user.metadata.role,
             cosmicId: user.id
           }
         } catch (error) {
