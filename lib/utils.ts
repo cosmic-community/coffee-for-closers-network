@@ -66,6 +66,68 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
+// Time utility functions
+export function getRelativeTime(date: string | Date): string {
+  const now = new Date()
+  const targetDate = new Date(date)
+  const diffInSeconds = Math.floor((now.getTime() - targetDate.getTime()) / 1000)
+
+  if (diffInSeconds < 60) {
+    return 'just now'
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+  } else if (diffInSeconds < 2592000) {
+    const days = Math.floor(diffInSeconds / 86400)
+    return `${days} day${days !== 1 ? 's' : ''} ago`
+  } else {
+    return formatDate(date)
+  }
+}
+
+export function getTimezoneOffset(timezoneKey: string): number {
+  const offsets: Record<string, number> = {
+    'EST': -5,
+    'CST': -6,
+    'MST': -7,
+    'PST': -8,
+    'GMT': 0,
+    'CET': 1
+  }
+  return offsets[timezoneKey] || 0
+}
+
+export function generateChatTitle(name1: string, name2: string): string {
+  const firstName1 = name1.split(' ')[0] || 'User'
+  const firstName2 = name2.split(' ')[0] || 'User'
+  return `${firstName1} & ${firstName2} Coffee Chat`
+}
+
+// Color utility functions
+export function getPostTypeColor(postType: string): string {
+  const colors: Record<string, string> = {
+    'tip': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    'win': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    'question': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    'resource': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    'general': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+  }
+  return colors[postType] || colors['general']
+}
+
+export function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    'scheduled': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    'completed': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    'no-show': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+  }
+  return colors[status] || colors['scheduled']
+}
+
 // Constants for form options
 export function getTimezoneOptions() {
   return [

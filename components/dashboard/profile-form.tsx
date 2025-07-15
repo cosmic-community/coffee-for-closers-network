@@ -17,9 +17,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
     jobTitle: user.metadata.job_title || '',
     company: user.metadata.company || '',
     bio: user.metadata.bio || '',
-    timezone: user.metadata.timezone?.key || 'EST' as TimeZoneKey,
+    timezone: (typeof user.metadata.timezone === 'string' ? user.metadata.timezone : user.metadata.timezone?.key) || 'EST' as TimeZoneKey,
     availability: user.metadata.availability || [],
-    yearsExperience: user.metadata.years_experience?.key || '0-2' as ExperienceLevel,
+    yearsExperience: (typeof user.metadata.years_experience === 'string' ? user.metadata.years_experience : user.metadata.years_experience?.key) || '0-2' as ExperienceLevel,
     industryFocus: user.metadata.industry_focus || [],
     linkedinUrl: user.metadata.linkedin_url || '',
     twitterUrl: user.metadata.twitter_url || '',
@@ -32,12 +32,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
     setIsLoading(true)
 
     try {
+      const roleValue = typeof user.metadata.role === 'string' ? user.metadata.role : user.metadata.role?.key || 'member'
+      
       const updateData = {
         title: formData.fullName,
         metadata: {
           full_name: formData.fullName,
           email: user.metadata.email,
-          role: user.metadata.role.key,
+          role: roleValue,
           job_title: formData.jobTitle,
           company: formData.company,
           bio: formData.bio,

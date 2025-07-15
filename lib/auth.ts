@@ -28,11 +28,13 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
+          const userRole = typeof user.metadata.role === 'string' ? user.metadata.role : user.metadata.role?.key || 'member'
+
           return {
             id: user.id,
             email: user.metadata.email,
             name: user.metadata.full_name,
-            role: user.metadata.role.key || user.metadata.role,
+            role: userRole,
             cosmicId: user.id
           }
         } catch (error) {

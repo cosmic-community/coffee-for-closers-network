@@ -3,7 +3,7 @@ import { User, CoffeeChat, AdminSettings } from '@/types'
 import { formatDate } from '@/lib/utils'
 
 // Initialize email transporter
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
@@ -20,6 +20,10 @@ export async function sendWelcomeEmail(
   if (!settings.metadata.welcome_email_enabled) {
     return
   }
+
+  const experienceValue = typeof user.metadata.years_experience === 'string' 
+    ? user.metadata.years_experience 
+    : user.metadata.years_experience?.value || 'Not specified'
 
   const emailContent = {
     from: settings.metadata.contact_email || process.env.SMTP_USER,
@@ -39,7 +43,7 @@ export async function sendWelcomeEmail(
             <strong>Name:</strong> ${user.metadata.full_name}<br>
             <strong>Job Title:</strong> ${user.metadata.job_title}<br>
             <strong>Company:</strong> ${user.metadata.company}<br>
-            <strong>Experience:</strong> ${user.metadata.years_experience?.value || 'Not specified'}
+            <strong>Experience:</strong> ${experienceValue}
           </p>
         </div>
         

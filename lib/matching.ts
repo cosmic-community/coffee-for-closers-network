@@ -198,8 +198,12 @@ function calculateMatchScore(
 ): number {
   let score = 0
 
-  const user1Timezone = user1.metadata.timezone?.key || 'EST'
-  const user2Timezone = user2.metadata.timezone?.key || 'EST'
+  const user1Timezone = typeof user1.metadata.timezone === 'string' 
+    ? user1.metadata.timezone 
+    : user1.metadata.timezone?.key || 'EST'
+  const user2Timezone = typeof user2.metadata.timezone === 'string' 
+    ? user2.metadata.timezone 
+    : user2.metadata.timezone?.key || 'EST'
   
   if (preferSameTimezone) {
     if (user1Timezone === user2Timezone) {
@@ -212,8 +216,12 @@ function calculateMatchScore(
     }
   }
 
-  const user1Experience = user1.metadata.years_experience?.key || '0-2'
-  const user2Experience = user2.metadata.years_experience?.key || '0-2'
+  const user1Experience = typeof user1.metadata.years_experience === 'string' 
+    ? user1.metadata.years_experience 
+    : user1.metadata.years_experience?.key || '0-2'
+  const user2Experience = typeof user2.metadata.years_experience === 'string' 
+    ? user2.metadata.years_experience 
+    : user2.metadata.years_experience?.key || '0-2'
   
   if (preferDifferentExperience) {
     if (user1Experience !== user2Experience) {

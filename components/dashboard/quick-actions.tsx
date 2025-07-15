@@ -58,7 +58,9 @@ export function QuickActions({ user }: QuickActionsProps) {
               {user.metadata.job_title} at {user.metadata.company}
             </p>
             <p className="text-sm text-gray-500">
-              {user.metadata.years_experience?.value || 'Experience not specified'}
+              {typeof user.metadata.years_experience === 'string' 
+                ? user.metadata.years_experience 
+                : user.metadata.years_experience?.value || 'Experience not specified'}
             </p>
           </div>
         </div>
