@@ -2,6 +2,7 @@ export interface User {
   id: string
   title: string
   slug: string
+  created_at: string
   metadata: {
     full_name: string
     email: string
@@ -47,6 +48,7 @@ export interface Post {
   id: string
   title: string
   slug: string
+  created_at: string
   metadata: {
     content: string
     author: User
@@ -70,6 +72,7 @@ export interface BlogArticle {
   id: string
   title: string
   slug: string
+  created_at: string
   metadata: {
     headline: string
     excerpt: string
@@ -96,6 +99,7 @@ export interface CoffeeChat {
   id: string
   title: string
   slug: string
+  created_at: string
   metadata: {
     chat_title: string
     participant_1: User
@@ -123,6 +127,7 @@ export interface CallToAction {
   id: string
   title: string
   slug: string
+  created_at: string
   metadata: {
     cta_title: string
     cta_description: string
@@ -143,6 +148,7 @@ export interface AdminSettings {
   id: string
   title: string
   slug: string
+  created_at: string
   metadata: {
     site_title: string
     site_description: string
@@ -164,5 +170,26 @@ export interface AdminSettings {
       linkedin: string
       github: string
     }
+  }
+}
+
+// Type aliases for dropdown values
+export type BlogCategory = 'sales-tips' | 'networking' | 'career-growth' | 'saas-industry' | 'community' | 'tools-resources'
+export type PostType = 'tip' | 'win' | 'question' | 'resource' | 'general'
+export type ChatStatus = 'scheduled' | 'completed' | 'cancelled' | 'no-show'
+export type TimeZoneKey = 'EST' | 'CST' | 'MST' | 'PST' | 'GMT' | 'CET'
+export type ExperienceLevel = '0-2' | '3-5' | '6-10' | '10+'
+
+// Additional interface for matching system
+export interface CreateChatData {
+  title: string
+  metadata: {
+    chat_title: string
+    participant_1: string
+    participant_2: string
+    scheduled_date: string
+    status: string
+    week_of_match: string
+    auto_generated: boolean
   }
 }

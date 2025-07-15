@@ -61,12 +61,43 @@ export function formatDate(date: string | Date): string {
   })
 }
 
+export function formatDateTime(date: string | Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export function formatTime(date: string | Date): string {
   return new Date(date).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   })
+}
+
+export function getRelativeTime(date: string | Date): string {
+  const now = new Date()
+  const then = new Date(date)
+  const diffInMs = now.getTime() - then.getTime()
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  const diffInDays = Math.floor(diffInHours / 24)
+
+  if (diffInMinutes < 1) {
+    return 'just now'
+  } else if (diffInMinutes < 60) {
+    return `${diffInMinutes}m ago`
+  } else if (diffInHours < 24) {
+    return `${diffInHours}h ago`
+  } else if (diffInDays < 7) {
+    return `${diffInDays}d ago`
+  } else {
+    return formatDate(date)
+  }
 }
 
 export function truncateText(text: string, maxLength: number): string {
@@ -81,6 +112,10 @@ export function generateSlug(text: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .trim()
+}
+
+export function generateChatTitle(participant1: string, participant2: string): string {
+  return `${participant1} & ${participant2} Coffee Chat`
 }
 
 export function validateEmail(email: string): boolean {
@@ -120,4 +155,31 @@ export function getPostTypeColor(type: string): string {
     default:
       return 'bg-gray-100 text-gray-800'
   }
+}
+
+export function getStatusColor(status: string): string {
+  switch (status) {
+    case 'scheduled':
+      return 'bg-blue-100 text-blue-800'
+    case 'completed':
+      return 'bg-green-100 text-green-800'
+    case 'cancelled':
+      return 'bg-red-100 text-red-800'
+    case 'no-show':
+      return 'bg-gray-100 text-gray-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
+export function getTimezoneOffset(timezone: string): number {
+  const timezoneOffsets: Record<string, number> = {
+    'EST': -5,
+    'CST': -6,
+    'MST': -7,
+    'PST': -8,
+    'GMT': 0,
+    'CET': 1,
+  }
+  return timezoneOffsets[timezone] || 0
 }

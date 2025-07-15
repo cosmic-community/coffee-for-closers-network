@@ -205,9 +205,8 @@ function calculateMatchScore(
     if (user1Timezone === user2Timezone) {
       score += 10
     } else {
-      // Fix: Convert getTimezoneOffset results to numbers before arithmetic
-      const offset1 = Number(getTimezoneOffset(user1Timezone))
-      const offset2 = Number(getTimezoneOffset(user2Timezone))
+      const offset1 = getTimezoneOffset(user1Timezone)
+      const offset2 = getTimezoneOffset(user2Timezone)
       const timezoneOffset = Math.abs(offset1 - offset2)
       score -= timezoneOffset * 2
     }
