@@ -1,497 +1,183 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { 
-  User, 
-  Post, 
-  CoffeeChat, 
-  BlogArticle, 
-  CallToAction, 
-  AdminSettings, 
-  CosmicResponse,
-  CreateUserData,
-  CreatePostData,
-  CreateChatData,
-  CosmicError
-} from '@/types'
-import { getCosmicConfig } from './utils'
+import { User, Post, BlogArticle, CoffeeChat, CallToAction, AdminSettings } from '@/types'
 
-// Initialize Cosmic client with staging environment
-const cosmicConfig = getCosmicConfig()
-export const cosmic = createBucketClient({
-  bucketSlug: cosmicConfig.bucketSlug,
-  readKey: cosmicConfig.readKey,
-  writeKey: cosmicConfig.writeKey,
-  apiEnvironment: "staging"
+const cosmic = createBucketClient({
+  bucketSlug: process.env.COSMIC_BUCKET_SLUG!,
+  readKey: process.env.COSMIC_READ_KEY!,
+  writeKey: process.env.COSMIC_WRITE_KEY!,
 })
 
-// Error helper for Cosmic SDK
-function hasStatus(error: unknown): error is { status: number } {
-  return typeof error === 'object' && error !== null && 'status' in error;
-}
-
-// Users functions
-export async function getAllUsers(): Promise<User[]> {
+// User functions
+export async function getUsers(): Promise<User[]> {
   try {
-    const response = await cosmic.objects
-      .find({ type: 'users' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
+    const response = await cosmic.objects.find({
+      type: 'users',
+    }).props(['id', 'title', 'slug', 'metadata']).depth(1)
     
-    return response.objects as User[]
+    return response.objects || []
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch users')
-  }
-}
-
-export async function getActiveUsers(): Promise<User[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'users',
-        'metadata.active_member': true 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return response.objects as User[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch active users')
+    console.error('Error fetching users:', error)
+    return []
   }
 }
 
 export async function getUserBySlug(slug: string): Promise<User | null> {
   try {
-    const response = await cosmic.objects
-      .findOne({ type: 'users', slug })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
+    const response = await cosmic.objects.findOne({
+      type: 'users',
+      slug,
+    }).depth(1)
     
-    return response.object as User
+    return response.object || null
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return null
-    }
-    throw new Error('Failed to fetch user')
+    console.error('Error fetching user:', error)
+    return null
   }
 }
 
-export async function getUserById(id: string): Promise<User | null> {
-  try {
-    const response = await cosmic.objects
-      .findOne({ type: 'users', id })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return response.object as User
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return null
-    }
-    throw new Error('Failed to fetch user')
-  }
-}
-
-export async function createUser(userData: CreateUserData): Promise<User> {
+export async function createUser(userData: any): Promise<User> {
   try {
     const response = await cosmic.objects.insertOne({
       type: 'users',
-      title: userData.title,
-      slug: userData.title.toLowerCase().replace(/\s+/g, '-'),
-      metadata: {
-        ...userData.metadata,
-        active_member: true,
-        join_date: new Date().toISOString().split('T')[0]
-      }
+      ...userData,
     })
     
-    return response.object as User
+    return response.object
   } catch (error) {
     console.error('Error creating user:', error)
-    throw new Error('Failed to create user')
+    throw new Error('Failed to create user account')
   }
 }
 
-export async function updateUser(id: string, userData: Partial<CreateUserData>): Promise<User> {
+export async function updateUser(id: string, userData: any): Promise<User> {
   try {
-    const response = await cosmic.objects.updateOne(id, {
-      title: userData.title,
-      metadata: userData.metadata
-    })
-    
-    return response.object as User
+    const response = await cosmic.objects.updateOne(id, userData)
+    return response.object
   } catch (error) {
     console.error('Error updating user:', error)
     throw new Error('Failed to update user')
   }
 }
 
-// Posts functions
-export async function getAllPosts(): Promise<Post[]> {
+// Post functions
+export async function getPosts(): Promise<Post[]> {
   try {
-    const response = await cosmic.objects
-      .find({ type: 'posts' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
+    const response = await cosmic.objects.find({
+      type: 'posts',
+    }).props(['id', 'title', 'slug', 'metadata']).depth(1)
     
-    return response.objects as Post[]
+    return response.objects || []
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch posts')
+    console.error('Error fetching posts:', error)
+    return []
   }
 }
 
-export async function getFeaturedPosts(): Promise<Post[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'posts',
-        'metadata.featured_post': true 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
-    
-    return response.objects as Post[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch featured posts')
-  }
-}
-
-export async function getPostsByType(postType: string): Promise<Post[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'posts',
-        'metadata.post_type': postType 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
-    
-    return response.objects as Post[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch posts')
-  }
-}
-
-export async function createPost(postData: CreatePostData): Promise<Post> {
+export async function createPost(postData: any): Promise<Post> {
   try {
     const response = await cosmic.objects.insertOne({
       type: 'posts',
-      title: postData.title,
-      slug: postData.title.toLowerCase().replace(/\s+/g, '-'),
-      metadata: {
-        ...postData.metadata,
-        likes_count: 0,
-        comments_count: 0,
-        featured_post: false
-      }
+      ...postData,
     })
     
-    return response.object as Post
+    return response.object
   } catch (error) {
     console.error('Error creating post:', error)
     throw new Error('Failed to create post')
   }
 }
 
-// Coffee Chats functions
-export async function getAllChats(): Promise<CoffeeChat[]> {
+// Blog functions
+export async function getBlogArticles(): Promise<BlogArticle[]> {
   try {
-    const response = await cosmic.objects
-      .find({ type: 'coffee-chats' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
+    const response = await cosmic.objects.find({
+      type: 'blog-articles',
+    }).props(['id', 'title', 'slug', 'metadata']).depth(1)
     
-    return response.objects as CoffeeChat[]
+    return response.objects || []
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch chats')
+    console.error('Error fetching blog articles:', error)
+    return []
   }
 }
 
-export async function getUpcomingChats(): Promise<CoffeeChat[]> {
+export async function getBlogArticleBySlug(slug: string): Promise<BlogArticle | null> {
   try {
-    const currentDate = new Date().toISOString().split('T')[0]
-    const response = await cosmic.objects
-      .find({ 
-        type: 'coffee-chats',
-        'metadata.status': 'scheduled',
-        'metadata.scheduled_date': { $gte: currentDate }
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('metadata.scheduled_date')
+    const response = await cosmic.objects.findOne({
+      type: 'blog-articles',
+      slug,
+    }).depth(1)
     
-    return response.objects as CoffeeChat[]
+    return response.object || null
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch upcoming chats')
+    console.error('Error fetching blog article:', error)
+    return null
   }
 }
 
-export async function getUserChats(userId: string): Promise<CoffeeChat[]> {
+// Coffee Chat functions
+export async function getCoffeeChats(): Promise<CoffeeChat[]> {
   try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'coffee-chats',
-        $or: [
-          { 'metadata.participant_1': userId },
-          { 'metadata.participant_2': userId }
-        ]
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
+    const response = await cosmic.objects.find({
+      type: 'coffee-chats',
+    }).props(['id', 'title', 'slug', 'metadata']).depth(1)
     
-    return response.objects as CoffeeChat[]
+    return response.objects || []
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch user chats')
+    console.error('Error fetching coffee chats:', error)
+    return []
   }
 }
 
-export async function createCoffeeChat(chatData: CreateChatData): Promise<CoffeeChat> {
+export async function createCoffeeChat(chatData: any): Promise<CoffeeChat> {
   try {
     const response = await cosmic.objects.insertOne({
       type: 'coffee-chats',
-      title: chatData.title,
-      slug: chatData.title.toLowerCase().replace(/\s+/g, '-'),
-      metadata: chatData.metadata
+      ...chatData,
     })
     
-    return response.object as CoffeeChat
+    return response.object
   } catch (error) {
     console.error('Error creating coffee chat:', error)
     throw new Error('Failed to create coffee chat')
   }
 }
 
-export async function updateCoffeeChat(id: string, chatData: Partial<CreateChatData>): Promise<CoffeeChat> {
+// Call to Action functions
+export async function getCallToActions(): Promise<CallToAction[]> {
   try {
-    const response = await cosmic.objects.updateOne(id, {
-      title: chatData.title,
-      metadata: chatData.metadata
-    })
+    const response = await cosmic.objects.find({
+      type: 'call-to-actions',
+    }).props(['id', 'title', 'slug', 'metadata']).depth(1)
     
-    return response.object as CoffeeChat
+    return response.objects || []
   } catch (error) {
-    console.error('Error updating coffee chat:', error)
-    throw new Error('Failed to update coffee chat')
-  }
-}
-
-// Blog Articles functions
-export async function getAllBlogArticles(): Promise<BlogArticle[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ type: 'blog-articles' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
-    
-    return response.objects as BlogArticle[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch blog articles')
-  }
-}
-
-export async function getFeaturedBlogArticles(): Promise<BlogArticle[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'blog-articles',
-        'metadata.featured_article': true 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
-    
-    return response.objects as BlogArticle[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch featured blog articles')
-  }
-}
-
-export async function getBlogArticleBySlug(slug: string): Promise<BlogArticle | null> {
-  try {
-    const response = await cosmic.objects
-      .findOne({ type: 'blog-articles', slug })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return response.object as BlogArticle
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return null
-    }
-    throw new Error('Failed to fetch blog article')
-  }
-}
-
-export async function getBlogArticlesByCategory(category: string): Promise<BlogArticle[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'blog-articles',
-        'metadata.category': category 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('-created_at')
-    
-    return response.objects as BlogArticle[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch blog articles')
-  }
-}
-
-// Call to Actions functions
-export async function getAllCTAs(): Promise<CallToAction[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ type: 'call-to-actions' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('metadata.priority_order')
-    
-    return response.objects as CallToAction[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch CTAs')
-  }
-}
-
-export async function getActiveCTAs(): Promise<CallToAction[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'call-to-actions',
-        'metadata.active': true 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('metadata.priority_order')
-    
-    return response.objects as CallToAction[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch active CTAs')
-  }
-}
-
-export async function getCTAsByType(ctaType: string): Promise<CallToAction[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        type: 'call-to-actions',
-        'metadata.cta_type': ctaType,
-        'metadata.active': true 
-      })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-      .sort('metadata.priority_order')
-    
-    return response.objects as CallToAction[]
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to fetch CTAs')
+    console.error('Error fetching call to actions:', error)
+    return []
   }
 }
 
 // Admin Settings functions
 export async function getAdminSettings(): Promise<AdminSettings | null> {
   try {
-    const response = await cosmic.objects
-      .findOne({ type: 'admin-settings' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
+    const response = await cosmic.objects.findOne({
+      type: 'admin-settings',
+      slug: 'coffee-for-closers-settings',
+    }).depth(1)
     
-    return response.object as AdminSettings
+    return response.object || null
   } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return null
-    }
-    throw new Error('Failed to fetch admin settings')
+    console.error('Error fetching admin settings:', error)
+    return null
   }
 }
 
-export async function updateAdminSettings(id: string, settings: Partial<AdminSettings['metadata']>): Promise<AdminSettings> {
+export async function updateAdminSettings(id: string, settingsData: any): Promise<AdminSettings> {
   try {
-    const response = await cosmic.objects.updateOne(id, {
-      metadata: settings
-    })
-    
-    return response.object as AdminSettings
+    const response = await cosmic.objects.updateOne(id, settingsData)
+    return response.object
   } catch (error) {
     console.error('Error updating admin settings:', error)
     throw new Error('Failed to update admin settings')
-  }
-}
-
-// Utility functions
-export async function deleteObject(id: string): Promise<void> {
-  try {
-    await cosmic.objects.deleteOne(id)
-  } catch (error) {
-    console.error('Error deleting object:', error)
-    throw new Error('Failed to delete object')
-  }
-}
-
-export async function searchObjects(query: string): Promise<any[]> {
-  try {
-    const response = await cosmic.objects
-      .find({ 
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { 'metadata.content': { $regex: query, $options: 'i' } }
-        ]
-      })
-      .props(['id', 'title', 'slug', 'metadata', 'type'])
-      .depth(1)
-    
-    return response.objects
-  } catch (error) {
-    if (hasStatus(error) && error.status === 404) {
-      return []
-    }
-    throw new Error('Failed to search objects')
   }
 }

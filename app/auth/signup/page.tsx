@@ -5,8 +5,8 @@ import { SignUpForm } from '@/components/auth/signup-form'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Sign Up - Coffee Closer Network',
-  description: 'Join the Coffee Closer Network community of sales professionals.',
+  title: 'Sign Up - Coffee for Closers',
+  description: 'Join the Coffee for Closers community of sales professionals.',
 }
 
 export default async function SignUpPage() {
@@ -21,7 +21,7 @@ export default async function SignUpPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Join Coffee Closer Network
+            Join Coffee for Closers
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Connect with fellow sales professionals
@@ -33,7 +33,7 @@ export default async function SignUpPage() {
         <div className="text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{' '}
-            <a href="/auth/signin" className="font-medium text-primary-600 hover:text-primary-500">
+            <a href="/auth/signin" className="font-medium text-blue-600 hover:text-blue-500">
               Sign in
             </a>
           </p>
