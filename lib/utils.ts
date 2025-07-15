@@ -156,9 +156,8 @@ export function debounce<T extends (...args: any[]) => void>(
 }
 
 export function generateChatTitle(user1: string | undefined, user2: string | undefined): string {
-  // Use nullish coalescing to provide default values and ensure type safety
-  const name1 = user1 ?? 'User'
-  const name2 = user2 ?? 'User'
+  const name1 = user1 || 'User'
+  const name2 = user2 || 'User'
   return `${name1} & ${name2} Coffee Chat`
 }
 
