@@ -101,8 +101,8 @@ export function getTimezoneOffset(timezoneKey: string): number {
 }
 
 export function generateChatTitle(name1: string, name2: string): string {
-  const firstName1 = name1.split(' ')[0] ?? 'User'
-  const firstName2 = name2.split(' ')[0] ?? 'User'
+  const firstName1 = name1.split(' ')[0] || 'User'
+  const firstName2 = name2.split(' ')[0] || 'User'
   return `${firstName1} & ${firstName2} Coffee Chat`
 }
 
