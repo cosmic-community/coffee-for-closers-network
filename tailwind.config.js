@@ -8,7 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        border: 'hsl(214.3 31.8% 91.4%)',
+        input: 'hsl(214.3 31.8% 91.4%)',
+        ring: 'hsl(222.2 84% 4.9%)',
+        background: 'hsl(0 0% 100%)',
+        foreground: 'hsl(222.2 84% 4.9%)',
         primary: {
+          DEFAULT: 'hsl(222.2 47.4% 11.2%)',
+          foreground: 'hsl(210 40% 98%)',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -21,6 +28,8 @@ module.exports = {
           900: '#1e3a8a',
         },
         secondary: {
+          DEFAULT: 'hsl(210 40% 96%)',
+          foreground: 'hsl(222.2 84% 4.9%)',
           50: '#fafafa',
           100: '#f4f4f5',
           200: '#e4e4e7',
@@ -31,6 +40,22 @@ module.exports = {
           700: '#3f3f46',
           800: '#27272a',
           900: '#18181b',
+        },
+        muted: {
+          DEFAULT: 'hsl(210 40% 96%)',
+          foreground: 'hsl(215.4 16.3% 46.9%)',
+        },
+        accent: {
+          DEFAULT: 'hsl(210 40% 96%)',
+          foreground: 'hsl(222.2 84% 4.9%)',
+        },
+        popover: {
+          DEFAULT: 'hsl(0 0% 100%)',
+          foreground: 'hsl(222.2 84% 4.9%)',
+        },
+        card: {
+          DEFAULT: 'hsl(0 0% 100%)',
+          foreground: 'hsl(222.2 84% 4.9%)',
         },
         success: {
           50: '#f0fdf4',
@@ -71,6 +96,11 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
