@@ -80,10 +80,7 @@ export function generateAvatarUrl(name: string): string {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=3b82f6&color=fff&size=128`
 }
 
-export function getTimezoneOffset(timezone: string): string {
-  const now = new Date()
-  const utc = new Date(now.getTime() + (now.getTimezoneOffset() * 60000))
-  
+export function getTimezoneOffset(timezone: string): number {
   const timezoneMap: Record<string, number> = {
     'EST': -5,
     'CST': -6,
@@ -93,13 +90,7 @@ export function getTimezoneOffset(timezone: string): string {
     'CET': 1
   }
   
-  const offset = timezoneMap[timezone] || 0
-  const targetTime = new Date(utc.getTime() + (offset * 3600000))
-  
-  return targetTime.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return timezoneMap[timezone] || 0
 }
 
 // Fix line 93: Add proper null check for environment variable
@@ -306,4 +297,82 @@ export function omit<T extends object, K extends keyof T>(
     delete result[key]
   })
   return result
+}
+
+// Add missing utility functions that were referenced in components
+export function getAvailabilitySlots(): string[] {
+  return [
+    'Monday Morning',
+    'Monday Afternoon',
+    'Tuesday Morning',
+    'Tuesday Afternoon',
+    'Wednesday Morning',
+    'Wednesday Afternoon',
+    'Thursday Morning',
+    'Thursday Afternoon',
+    'Friday Morning',
+    'Friday Afternoon'
+  ]
+}
+
+export function getTimezoneOptions(): Array<{ key: string; value: string }> {
+  return [
+    { key: 'EST', value: 'Eastern Time (EST)' },
+    { key: 'CST', value: 'Central Time (CST)' },
+    { key: 'MST', value: 'Mountain Time (MST)' },
+    { key: 'PST', value: 'Pacific Time (PST)' },
+    { key: 'GMT', value: 'Greenwich Mean Time (GMT)' },
+    { key: 'CET', value: 'Central European Time (CET)' }
+  ]
+}
+
+export function getExperienceLevels(): Array<{ key: string; value: string }> {
+  return [
+    { key: '0-2', value: '0-2 years' },
+    { key: '3-5', value: '3-5 years' },
+    { key: '6-10', value: '6-10 years' },
+    { key: '10+', value: '10+ years' }
+  ]
+}
+
+export function getIndustryOptions(): string[] {
+  return [
+    'SaaS',
+    'Enterprise Software',
+    'Cloud Services',
+    'Security',
+    'DevTools',
+    'Analytics',
+    'AI/ML',
+    'Other'
+  ]
+}
+
+export function getPostTypeColor(postType: string): string {
+  const colors: Record<string, string> = {
+    'tip': 'bg-blue-100 text-blue-800',
+    'win': 'bg-green-100 text-green-800',
+    'question': 'bg-yellow-100 text-yellow-800',
+    'resource': 'bg-purple-100 text-purple-800',
+    'general': 'bg-gray-100 text-gray-800'
+  }
+  return colors[postType] || 'bg-gray-100 text-gray-800'
+}
+
+export function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    'scheduled': 'bg-blue-100 text-blue-800',
+    'completed': 'bg-green-100 text-green-800',
+    'cancelled': 'bg-red-100 text-red-800',
+    'no-show': 'bg-yellow-100 text-yellow-800'
+  }
+  return colors[status] || 'bg-gray-100 text-gray-800'
+}
+
+export function getRelativeTime(date: string | Date): string {
+  return timeAgo(date)
+}
+
+export function generateChatTitle(name1: string, name2: string): string {
+  return `${name1} & ${name2} Coffee Chat`
 }

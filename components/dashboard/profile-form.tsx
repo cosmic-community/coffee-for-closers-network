@@ -149,7 +149,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             onChange={(e) => setFormData(prev => ({ ...prev, timezone: e.target.value as TimeZoneKey }))}
             className="select mt-1"
           >
-            {getTimezoneOptions().map(option => (
+            {getTimezoneOptions().map((option: { key: string; value: string }) => (
               <option key={option.key} value={option.key}>
                 {option.value}
               </option>
@@ -167,7 +167,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value as ExperienceLevel }))}
             className="select mt-1"
           >
-            {getExperienceLevels().map(option => (
+            {getExperienceLevels().map((option: { key: string; value: string }) => (
               <option key={option.key} value={option.key}>
                 {option.value}
               </option>
@@ -182,7 +182,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           Availability
         </label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {getAvailabilitySlots().map(slot => (
+          {getAvailabilitySlots().map((slot: string) => (
             <label key={slot} className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -202,7 +202,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           Industry Focus
         </label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {getIndustryOptions().map(industry => (
+          {getIndustryOptions().map((industry: string) => (
             <label key={industry} className="flex items-center space-x-2">
               <input
                 type="checkbox"
