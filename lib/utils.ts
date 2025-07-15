@@ -156,8 +156,8 @@ export function debounce<T extends (...args: any[]) => void>(
 }
 
 export function generateChatTitle(user1: string | undefined, user2: string | undefined): string {
-  const name1 = user1 ?? 'User'
-  const name2 = user2 ?? 'User'
+  const name1 = user1 || 'User'
+  const name2 = user2 || 'User'
   return `${name1} & ${name2} Coffee Chat`
 }
 
@@ -238,7 +238,7 @@ export function optimizeImage(url: string | undefined, options: {
   if (format) params.append('auto', format)
   
   const separator = url.includes('?') ? '&' : '?'
-  return url + separator + params.toString()
+  return `${url}${separator}${params.toString()}`
 }
 
 export function formatRelativeTime(date: string | Date): string {
