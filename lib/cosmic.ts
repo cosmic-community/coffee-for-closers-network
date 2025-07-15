@@ -12,12 +12,15 @@ import {
   CreateChatData,
   CosmicError
 } from '@/types'
+import { getCosmicConfig } from './utils'
 
-// Initialize Cosmic client
+// Initialize Cosmic client with staging environment
+const cosmicConfig = getCosmicConfig()
 export const cosmic = createBucketClient({
-  bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
-  readKey: process.env.COSMIC_READ_KEY as string,
-  writeKey: process.env.COSMIC_WRITE_KEY as string,
+  bucketSlug: cosmicConfig.bucketSlug,
+  readKey: cosmicConfig.readKey,
+  writeKey: cosmicConfig.writeKey,
+  apiEnvironment: "staging"
 })
 
 // Error helper for Cosmic SDK
