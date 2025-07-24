@@ -115,7 +115,7 @@ export function getPostTypeColor(postType: string): string {
     'resource': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
     'general': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
   }
-  return colors[postType] || colors['general']
+  return colors[postType] || colors['general'] || ''
 }
 
 export function getStatusColor(status: string): string {
@@ -125,7 +125,7 @@ export function getStatusColor(status: string): string {
     'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
     'no-show': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
   }
-  return colors[status] || colors['scheduled']
+  return colors[status] || colors['scheduled'] || ''
 }
 
 // Constants for form options
