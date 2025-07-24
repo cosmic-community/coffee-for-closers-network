@@ -1,7 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { getUserBySlug } from '@/lib/cosmic'
-import { User, AuthUser } from '@/types'
+import { verifyPassword } from '@/lib/password'
+import { getUserByEmail, updateUser } from '@/lib/cosmic'
+import { AuthUser } from '@/types'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,18 +18,39 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const emailSlug = credentials.email.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '-')
-          if (!emailSlug) {
-            return null
-          }
-
-          const user = await getUserBySlug(emailSlug)
+          // Find user by email
+          const user = await getUserByEmail(credentials.email.toLowerCase())
 
           if (!user || !user.metadata.active_member) {
             return null
           }
 
-          const userRole = typeof user.metadata.role === 'string' ? user.metadata.role : user.metadata.role?.key || 'member'
+          // Verify password
+          const isValidPassword = await verifyPassword(
+            credentials.password,
+            user.metadata.password_hash
+          )
+
+          if (!isValidPassword) {
+            return null
+          }
+
+          // Update last active date
+          try {
+            await updateUser(user.id, {
+              metadata: {
+                ...user.metadata,
+                last_active: new Date().toISOString().split('T')[0]
+              }
+            })
+          } catch (error) {
+            console.error('Failed to update last active:', error)
+            // Don't fail the login for this
+          }
+
+          const userRole = typeof user.metadata.role === 'string' 
+            ? user.metadata.role 
+            : user.metadata.role?.value || 'member'
 
           return {
             id: user.id,
@@ -65,6 +87,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

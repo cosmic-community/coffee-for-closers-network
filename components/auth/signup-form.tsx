@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { createUser } from '@/lib/cosmic'
 import { 
   getAvailabilitySlots, 
   getTimezoneOptions, 
@@ -16,6 +15,7 @@ interface SignUpFormData {
   fullName: string
   email: string
   password: string
+  confirmPassword: string
   jobTitle: string
   company: string
   bio: string
@@ -33,6 +33,7 @@ export function SignUpForm() {
     fullName: '',
     email: '',
     password: '',
+    confirmPassword: '',
     jobTitle: '',
     company: '',
     bio: '',
@@ -45,6 +46,7 @@ export function SignUpForm() {
     websiteUrl: ''
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -59,45 +61,46 @@ export function SignUpForm() {
         return
       }
 
+      // Validate password confirmation
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Passwords do not match')
+        return
+      }
+
       if (formData.availability.length === 0) {
         toast.error('Please select your availability')
         return
       }
 
-      if (formData.password.length < 6) {
-        toast.error('Password must be at least 6 characters')
-        return
-      }
-
-      // Create user slug from email
-      const userSlug = formData.email.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '-')
-      
-      // Create user in Cosmic
-      const userData = {
-        title: formData.fullName,
-        slug: userSlug,
-        metadata: {
-          full_name: formData.fullName,
+      // Call signup API
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
           email: formData.email,
-          role: 'member',
-          job_title: formData.jobTitle,
+          password: formData.password,
+          jobTitle: formData.jobTitle,
           company: formData.company,
           bio: formData.bio,
           timezone: formData.timezone,
           availability: formData.availability,
-          years_experience: formData.yearsExperience,
-          industry_focus: formData.industryFocus,
-          linkedin_url: formData.linkedinUrl || '',
-          twitter_url: formData.twitterUrl || '',
-          website_url: formData.websiteUrl || '',
-          active_member: true,
-          join_date: new Date().toISOString().split('T')[0],
-          last_active: new Date().toISOString().split('T')[0]
-        }
+          yearsExperience: formData.yearsExperience,
+          industryFocus: formData.industryFocus,
+          linkedinUrl: formData.linkedinUrl,
+          twitterUrl: formData.twitterUrl,
+          websiteUrl: formData.websiteUrl
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account')
       }
 
-      await createUser(userData)
-      
       toast.success('Account created successfully! Please sign in.')
       router.push('/auth/signin')
     } catch (error) {
@@ -165,31 +168,64 @@ export function SignUpForm() {
         </div>
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Password *
-        </label>
-        <div className="relative mt-1">
-          <input
-            id="password"
-            type={showPassword ? 'text' : 'password'}
-            value={formData.password}
-            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-            required
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-10"
-            placeholder="Create a password"
-          />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4 text-gray-400" />
-            ) : (
-              <Eye className="h-4 w-4 text-gray-400" />
-            )}
-          </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Password *
+          </label>
+          <div className="relative mt-1">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              required
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-10"
+              placeholder="Create a password"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Must be at least 8 characters with uppercase, lowercase, number, and special character
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Confirm Password *
+          </label>
+          <div className="relative mt-1">
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              required
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-10"
+              placeholder="Confirm your password"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

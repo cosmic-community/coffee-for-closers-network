@@ -6,6 +6,7 @@ export interface User {
   metadata: {
     full_name: string
     email: string
+    password_hash: string
     role: {
       key: string
       value: string
@@ -199,6 +200,7 @@ export interface SignUpFormData {
   fullName: string
   email: string
   password: string
+  confirmPassword: string
   jobTitle: string
   company: string
   bio: string
@@ -217,6 +219,7 @@ export interface CreateUserData {
   metadata: {
     full_name: string
     email: string
+    password_hash: string
     role: string
     job_title: string
     company: string
@@ -246,6 +249,63 @@ export interface CosmicError {
   status?: number
 }
 
+// Auth interfaces
+export interface SignInCredentials {
+  email: string
+  password: string
+}
+
+export interface AuthResponse {
+  success: boolean
+  user?: AuthUser
+  error?: string
+  message?: string
+}
+
+export interface SessionUser extends AuthUser {
+  profile: {
+    job_title: string
+    company: string
+    bio: string
+    profile_photo?: {
+      url: string
+      imgix_url: string
+    }
+    timezone: {
+      key: string
+      value: string
+    } | string
+    availability: string[]
+    years_experience: {
+      key: string
+      value: string
+    } | string
+    industry_focus: string[]
+    linkedin_url: string
+    twitter_url: string
+    website_url: string
+    active_member: boolean
+    join_date: string
+    last_active: string
+  }
+}
+
 // Utility types
 export type OptionalExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
 export type RequiredExcept<T, K extends keyof T> = Required<T> & Partial<Pick<T, K>>
+
+// NextAuth types extension
+declare module 'next-auth' {
+  interface Session {
+    user: AuthUser
+  }
+  
+  interface User extends AuthUser {}
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role: string
+    cosmicId: string
+  }
+}

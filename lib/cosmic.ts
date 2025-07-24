@@ -1,5 +1,5 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { User, Post, BlogArticle, CoffeeChat, CallToAction, AdminSettings } from '@/types'
+import { User, Post, BlogArticle, CoffeeChat, CallToAction, AdminSettings, CreateUserData } from '@/types'
 
 const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG!,
@@ -67,7 +67,22 @@ export async function getUserById(id: string): Promise<User | null> {
   }
 }
 
-export async function createUser(userData: any): Promise<User> {
+export async function getUserByEmail(email: string): Promise<User | null> {
+  try {
+    const response = await cosmic.objects.find({
+      type: 'users',
+      'metadata.email': email.toLowerCase()
+    }).props(['id', 'title', 'slug', 'metadata', 'created_at']).depth(1)
+    
+    const users = response.objects || []
+    return users.length > 0 ? users[0] : null
+  } catch (error) {
+    console.error('Error fetching user by email:', error)
+    throw new Error('User not found')
+  }
+}
+
+export async function createUser(userData: CreateUserData): Promise<User> {
   try {
     const response = await cosmic.objects.insertOne({
       type: 'users',
@@ -77,6 +92,16 @@ export async function createUser(userData: any): Promise<User> {
     return response.object
   } catch (error) {
     console.error('Error creating user:', error)
+    
+    if (error instanceof Error) {
+      if (error.message.includes('duplicate') || error.message.includes('exists')) {
+        throw new Error('A user with this email already exists')
+      }
+      if (error.message.includes('validation')) {
+        throw new Error('Please check your information and try again')
+      }
+    }
+    
     throw new Error('Failed to create user account')
   }
 }
