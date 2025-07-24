@@ -72,8 +72,9 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password)
 
-    // Create user slug from email
-    const userSlug = email.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '-') || ''
+    // Create user slug from email - add null check and provide fallback
+    const emailPrefix = email.split('@')[0]
+    const userSlug = emailPrefix ? emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'user'
     
     // Prepare user data
     const userData: CreateUserData = {
@@ -95,8 +96,8 @@ export async function POST(request: NextRequest) {
         twitter_url: twitterUrl || '',
         website_url: websiteUrl || '',
         active_member: true,
-        join_date: new Date().toISOString().split('T')[0],
-        last_active: new Date().toISOString().split('T')[0]
+        join_date: new Date().toISOString().split('T')[0] || '',
+        last_active: new Date().toISOString().split('T')[0] || ''
       }
     }
 
