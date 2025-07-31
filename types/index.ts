@@ -1,48 +1,54 @@
-export interface CosmicFile {
-  url: string
-  imgix_url: string
+import { CosmicObject } from '@cosmicjs/sdk'
+
+// Base Cosmic Object Interface
+export interface BaseCosmicObject extends CosmicObject {
+  id: string
+  title: string
+  slug: string
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  metadata: Record<string, any>
 }
 
-export interface CosmicSelectOption {
+// User Types
+export interface UserRole {
   key: string
   value: string
 }
 
-export interface CosmicUser {
-  id: string
-  title: string
-  slug: string
-  created_at?: string
-  modified_at?: string
-  status?: string
-  metadata: {
-    full_name: string
-    email: string
-    password_hash: string
-    role: string | CosmicSelectOption
-    job_title: string
-    company: string
-    bio?: string
-    profile_photo?: CosmicFile
-    linkedin_url?: string
-    twitter_url?: string
-    website_url?: string
-    timezone: string | CosmicSelectOption
-    availability: string[]
-    years_experience: string | CosmicSelectOption
-    industry_focus: string[]
-    active_member: boolean
-    join_date?: string
-    last_active?: string
-    onboarding_completed?: boolean
-    profile_completed?: boolean
-    onboarding_step?: string
-    welcome_completed?: boolean
-    interests?: string[]
+export interface UserMetadata {
+  full_name: string
+  email: string
+  password_hash: string
+  role: string | UserRole
+  job_title: string
+  company: string
+  bio: string
+  timezone: string
+  availability: string[]
+  years_experience: string
+  industry_focus: string[]
+  linkedin_url: string
+  twitter_url: string
+  website_url: string
+  active_member: boolean
+  join_date: string
+  last_active: string
+  email_verified?: boolean
+  email_verified_at?: string
+  password_reset_at?: string
+  onboarding_completed?: boolean
+  profile_completed?: boolean
+  profile_photo?: {
+    imgix_url: string
+    url: string
   }
 }
 
-export interface User extends CosmicUser {}
+export interface User extends BaseCosmicObject {
+  metadata: UserMetadata
+}
 
 export interface AuthUser {
   id: string
@@ -50,164 +56,175 @@ export interface AuthUser {
   name: string
   role: string
   cosmicId: string
-  metadata?: CosmicUser['metadata']
+  profile?: UserProfile
+}
+
+export interface UserProfile {
+  job_title: string
+  company: string
+  bio: string
+  profile_photo?: {
+    imgix_url: string
+    url: string
+  }
+  timezone: string
+  availability: string[]
+  years_experience: string
+  industry_focus: string[]
+  linkedin_url: string
+  twitter_url: string
+  website_url: string
+  active_member: boolean
+  join_date: string
+  last_active: string
+}
+
+// Form Data Types
+export interface SignupFormData {
+  fullName: string
+  email: string
+  password: string
+  confirmPassword: string
+  jobTitle: string
+  company: string
+  bio: string
+  timezone: string
+  availability: string[]
+  yearsExperience: string
+  industryFocus: string[]
+  linkedinUrl: string
+  twitterUrl: string
+  websiteUrl: string
+}
+
+export interface QuickSignupFormData {
+  fullName: string
+  email: string
+  password: string
+  jobTitle: string
+  company: string
 }
 
 export interface CreateUserData {
   title: string
   slug: string
-  metadata: {
-    full_name: string
-    email: string
-    password_hash: string
-    role: string
-    job_title: string
-    company: string
-    bio: string
-    timezone: string
-    availability: string[]
-    years_experience: string
-    industry_focus: string[]
-    linkedin_url: string
-    twitter_url: string
-    website_url: string
-    active_member: boolean
-    join_date: string
-    last_active: string
-    onboarding_completed?: boolean
-    profile_completed?: boolean
-  }
+  metadata: Omit<UserMetadata, 'password_reset_at' | 'email_verified' | 'email_verified_at' | 'onboarding_completed' | 'profile_completed'>
 }
 
-export interface UpdateUserData {
-  title?: string
-  slug?: string
-  metadata?: Partial<CosmicUser['metadata']>
-}
-
-export interface Post {
-  id: string
-  title: string
-  slug: string
-  created_at?: string
-  metadata: {
-    content: string
-    author: CosmicUser
-    post_type: CosmicSelectOption
-    featured_image?: CosmicFile
-    tags: string[]
-    likes_count?: number
-    comments_count?: number
-    featured_post: boolean
-    posted_date?: string
-  }
-}
-
-export interface BlogArticle {
-  id: string
-  title: string
-  slug: string
-  created_at?: string
-  metadata: {
-    headline: string
-    excerpt: string
-    content: string
-    featured_image: CosmicFile
-    author: CosmicUser
-    category: CosmicSelectOption
-    tags: string[]
-    seo_title?: string
-    seo_description?: string
-    published_date?: string
-    read_time?: number
-    featured_article: boolean
-  }
-}
-
-export interface CoffeeChat {
-  id: string
-  title: string
-  slug: string
-  created_at?: string
-  metadata: {
-    chat_title: string
-    participant_1: CosmicUser
-    participant_2: CosmicUser
-    scheduled_date: string
-    status: CosmicSelectOption
-    meeting_link?: string
-    calendly_event_id?: string
-    notes?: string
-    feedback_participant_1?: string
-    feedback_participant_2?: string
-    rating?: CosmicSelectOption
-    week_of_match?: string
-    auto_generated: boolean
-  }
-}
-
-export interface CallToAction {
-  id: string
-  title: string
-  slug: string
-  created_at?: string
-  metadata: {
-    cta_title: string
-    cta_description: string
-    button_text: string
-    button_link: string
-    cta_type: CosmicSelectOption
-    background_color?: string
-    text_color?: string
-    active: boolean
-    priority_order?: number
-  }
-}
-
-export interface AdminSettings {
-  id: string
-  title: string
-  slug: string
-  created_at?: string
-  metadata: {
-    site_title: string
-    site_description: string
-    matching_enabled: boolean
-    weekly_match_day: CosmicSelectOption
-    max_chats_per_week: number
-    welcome_email_enabled: boolean
-    match_notification_enabled: boolean
-    community_feed_enabled: boolean
-    donation_enabled: boolean
-    stripe_public_key?: string
-    calendly_url?: string
-    contact_email?: string
-    social_links?: {
-      twitter?: string
-      linkedin?: string
-      github?: string
-    }
-  }
-}
-
-export interface AuthContextType {
-  user: AuthUser | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  signIn: (email: string, password: string) => Promise<{ user: AuthUser }>
-  signOut: () => Promise<void>
-  refreshUser: () => Promise<void>
-}
-
+// API Response Types
 export interface ApiResponse<T = any> {
   success: boolean
-  data?: T
-  error?: string
   message?: string
+  error?: string
+  data?: T
 }
 
-export interface PaginatedResponse<T> extends ApiResponse<T> {
-  total: number
-  page: number
-  limit: number
+export interface AuthResponse extends ApiResponse {
+  user?: {
+    id: string
+    email: string
+    name: string
+    role?: string
+    cosmicId?: string
+    onboardingToken?: string
+  }
 }
+
+export interface UserResponse extends ApiResponse {
+  user?: User
+}
+
+export interface UsersResponse extends ApiResponse {
+  users?: User[]
+}
+
+// Validation Types
+export interface ValidationResult {
+  isValid: boolean
+  errors: string[]
+}
+
+// Analytics Types
+export interface AnalyticsEvent {
+  event: string
+  properties: Record<string, any>
+  timestamp: string
+  url?: string
+  userAgent?: string
+  referrer?: string
+}
+
+export interface SignupEvent {
+  email?: string
+  userId?: string
+  company?: string
+  jobTitle?: string
+  step?: string
+  error?: string
+  source?: string
+}
+
+// Email Types
+export interface EmailTemplate {
+  subject: string
+  html: string
+  text: string
+}
+
+export interface EmailOptions {
+  to: string
+  subject: string
+  html: string
+  text?: string
+}
+
+// JWT Payload Types
+export interface JWTPayload {
+  userId?: string
+  email?: string
+  role?: string
+  type?: string
+  exp?: number
+  iat?: number
+}
+
+// NextAuth Types
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      email: string
+      name: string
+      role: string
+      cosmicId: string
+    }
+  }
+
+  interface User {
+    id: string
+    email: string
+    name: string
+    role: string
+    cosmicId: string
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role: string
+    cosmicId: string
+  }
+}
+
+// Utility Types
+export type UserJourneyStep = {
+  step: string
+  timestamp: number
+  properties?: any
+}
+
+export type SignupStep = 'form' | 'verification' | 'success'
+
+export type ConversionType = 'signup' | 'email_verified' | 'profile_completed' | 'first_match'
+
+export type SignupVariant = 'default' | 'social_first' | 'minimal'

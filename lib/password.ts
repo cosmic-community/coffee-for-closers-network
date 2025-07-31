@@ -1,81 +1,44 @@
 import bcrypt from 'bcryptjs'
-
-export interface PasswordValidationResult {
-  isValid: boolean
-  errors: string[]
-}
+import { ValidationResult } from '@/types'
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12
-  return await bcrypt.hash(password, saltRounds)
+  return bcrypt.hash(password, saltRounds)
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  try {
-    return await bcrypt.compare(password, hash)
-  } catch (error) {
-    console.error('Password verification error:', error)
-    return false
-  }
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return bcrypt.compare(password, hashedPassword)
 }
 
-export function validatePassword(password: string): PasswordValidationResult {
+export function validatePassword(password: string): ValidationResult {
   const errors: string[] = []
   
   if (!password) {
-    errors.push('Password is required')
-    return { isValid: false, errors }
+    return { isValid: false, errors: ['Password is required'] }
   }
   
   if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long')
-  }
-  
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter')
+    errors.push('At least 8 characters')
   }
   
   if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter')
+    errors.push('One uppercase letter')
   }
   
-  if (!/\d/.test(password)) {
-    errors.push('Password must contain at least one number')
+  if (!/[a-z]/.test(password)) {
+    errors.push('One lowercase letter')
   }
   
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Password must contain at least one special character')
+  if (!/[0-9]/.test(password)) {
+    errors.push('One number')
+  }
+  
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?]/.test(password)) {
+    errors.push('One special character')
   }
   
   return {
     isValid: errors.length === 0,
     errors
   }
-}
-
-export function validatePasswordStrength(password: string): {
-  score: number
-  feedback: string[]
-} {
-  let score = 0
-  const feedback: string[] = []
-  
-  if (password.length >= 8) score += 1
-  else feedback.push('Use at least 8 characters')
-  
-  if (/[a-z]/.test(password)) score += 1
-  else feedback.push('Add lowercase letters')
-  
-  if (/[A-Z]/.test(password)) score += 1
-  else feedback.push('Add uppercase letters')
-  
-  if (/\d/.test(password)) score += 1
-  else feedback.push('Add numbers')
-  
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1
-  else feedback.push('Add special characters')
-  
-  if (password.length >= 12) score += 1
-  
-  return { score, feedback }
 }
