@@ -1,18 +1,18 @@
 import jwt from 'jsonwebtoken'
 
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'fallback-secret-key'
+
 export interface JWTPayload {
-  email: string
   userId: string
+  email: string
   role: string
   iat?: number
   exp?: number
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
-
 export async function signJWT(payload: Omit<JWTPayload, 'iat' | 'exp'>): Promise<string> {
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: '1h'
+    expiresIn: '24h'
   })
 }
 
@@ -26,10 +26,18 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
   }
 }
 
-export function createPasswordResetToken(email: string, userId: string, role: string = 'member'): Promise<string> {
-  return signJWT({ email, userId, role })
+export async function generateResetToken(email: string): Promise<string> {
+  return signJWT({
+    userId: '',
+    email,
+    role: 'reset',
+  })
 }
 
-export function createEmailVerificationToken(email: string, userId: string, role: string = 'member'): Promise<string> {
-  return signJWT({ email, userId, role })
+export async function generateVerificationToken(userId: string, email: string): Promise<string> {
+  return signJWT({
+    userId,
+    email,
+    role: 'verification',
+  })
 }
