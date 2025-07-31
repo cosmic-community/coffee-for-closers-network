@@ -100,6 +100,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data
   }
 
+  const signUp = async (userData: {
+    email: string
+    password: string
+    full_name: string
+    company?: string
+    job_title?: string
+  }): Promise<{ user: AuthUser }> => {
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Sign up failed')
+    }
+
+    const data = await response.json()
+    if (data.user) {
+      setUser(data.user)
+    }
+    return data
+  }
+
   const signOut = async (): Promise<void> => {
     try {
       await fetch('/api/auth/signout', {
@@ -129,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     isLoading,
     signIn,
+    signUp,
     signOut,
     refreshUser
   }
