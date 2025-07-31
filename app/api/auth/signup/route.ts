@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
 
     // Return success (don't include sensitive data)
     // Fix TypeScript errors by providing explicit fallback values and proper type handling
-    const userEmail: string = (newUser.metadata?.email as string) ?? email
-    const userName: string = (newUser.metadata?.full_name as string) ?? fullName
+    const userEmail: string = (newUser.metadata?.email as string) || email
+    const userName: string = (newUser.metadata?.full_name as string) || fullName
     
     return NextResponse.json({
       success: true,
