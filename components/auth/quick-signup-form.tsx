@@ -40,7 +40,7 @@ export function QuickSignupForm({ onSuccess, isLoading, setIsLoading }: QuickSig
   const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   const validateField = (name: string, value: string) => {
-    let validation = { isValid: true, errors: [] }
+    let validation = { isValid: true, errors: [] as string[] }
     
     switch (name) {
       case 'fullName':
@@ -66,13 +66,13 @@ export function QuickSignupForm({ onSuccess, isLoading, setIsLoading }: QuickSig
     
     setFieldErrors(prev => ({
       ...prev,
-      [name]: validation.isValid ? '' : validation.errors[0]
+      [name]: validation.isValid ? '' : validation.errors[0] || ''
     }))
     
     return validation.isValid
   }
 
-  const handleFieldChange = (name: string, value: string) => {
+  const handleFieldChange = (name: keyof QuickSignupFormData, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }))
     
     // Real-time validation for touched fields
@@ -81,9 +81,9 @@ export function QuickSignupForm({ onSuccess, isLoading, setIsLoading }: QuickSig
     }
   }
 
-  const handleFieldBlur = (name: string) => {
+  const handleFieldBlur = (name: keyof QuickSignupFormData) => {
     setTouched(prev => ({ ...prev, [name]: true }))
-    validateField(name, formData[name as keyof QuickSignupFormData])
+    validateField(name, formData[name])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

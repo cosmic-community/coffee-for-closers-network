@@ -71,7 +71,7 @@ export async function trackSignupFunnel(
 ): Promise<void> {
   await trackSignupStep(`signup_funnel_${step}`, {
     ...properties,
-    funnel_step: step
+    step: step
   })
 }
 
@@ -81,7 +81,7 @@ export async function trackConversion(
 ): Promise<void> {
   await trackSignupStep(`conversion_${conversionType}`, {
     ...properties,
-    conversion_type: conversionType
+    source: conversionType
   })
 }
 
@@ -92,7 +92,8 @@ export function getSignupVariant(): 'default' | 'social_first' | 'minimal' {
   // Simple A/B test based on user ID hash or random
   const variants = ['default', 'social_first', 'minimal'] as const
   const hash = Math.abs(hashCode(window.navigator.userAgent + window.location.hostname))
-  return variants[hash % variants.length]
+  const variant = variants[hash % variants.length]
+  return variant || 'default'
 }
 
 function hashCode(str: string): number {
@@ -116,8 +117,8 @@ export async function trackError(
   await trackSignupStep('error_occurred', {
     ...properties,
     error: errorMessage,
-    error_stack: errorStack,
-    context
+    source: errorStack,
+    step: context
   })
 }
 
@@ -153,10 +154,15 @@ export class UserJourney {
   async sendJourney(): Promise<void> {
     if (this.journey.length === 0) return
 
+    const firstStep = this.journey[0]
+    const lastStep = this.journey[this.journey.length - 1]
+
     await trackSignupStep('user_journey', {
-      journey: this.journey,
-      journey_length: this.journey.length,
-      total_time: this.journey[this.journey.length - 1]?.timestamp - this.journey[0]?.timestamp
+      source: this.journey,
+      step: `${this.journey.length}_steps`,
+      company: firstStep?.properties?.company,
+      jobTitle: lastStep?.timestamp && firstStep?.timestamp ? 
+        String(lastStep.timestamp - firstStep.timestamp) : undefined
     })
   }
 

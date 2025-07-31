@@ -96,3 +96,48 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2)
 }
+
+// Post type color utility
+export function getPostTypeColor(type: string): string {
+  const colorMap: Record<string, string> = {
+    'win': 'bg-green-100 text-green-800',
+    'question': 'bg-blue-100 text-blue-800',
+    'resource': 'bg-purple-100 text-purple-800',
+    'discussion': 'bg-gray-100 text-gray-800',
+    'announcement': 'bg-yellow-100 text-yellow-800'
+  }
+  return colorMap[type] || 'bg-gray-100 text-gray-800'
+}
+
+// Status color utility
+export function getStatusColor(status: string): string {
+  const colorMap: Record<string, string> = {
+    'scheduled': 'bg-blue-100 text-blue-800',
+    'completed': 'bg-green-100 text-green-800',
+    'cancelled': 'bg-red-100 text-red-800',
+    'pending': 'bg-yellow-100 text-yellow-800'
+  }
+  return colorMap[status] || 'bg-gray-100 text-gray-800'
+}
+
+// Relative time utility
+export function getRelativeTime(date: string | Date): string {
+  const now = new Date()
+  const target = new Date(date)
+  const diffInSeconds = Math.floor((now.getTime() - target.getTime()) / 1000)
+  
+  if (diffInSeconds < 60) {
+    return 'just now'
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400)
+    return `${days} day${days > 1 ? 's' : ''} ago`
+  } else {
+    return formatDate(target)
+  }
+}

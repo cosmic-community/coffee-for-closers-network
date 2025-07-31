@@ -29,7 +29,7 @@ class ApiClient {
         return {
           success: false,
           error: data.error || `HTTP error! status: ${response.status}`,
-          data: null
+          data: undefined
         }
       }
 
@@ -42,7 +42,7 @@ class ApiClient {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Network error occurred',
-        data: null
+        data: undefined
       }
     }
   }

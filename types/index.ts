@@ -1,7 +1,5 @@
-import { CosmicObject } from '@cosmicjs/sdk'
-
 // Base Cosmic Object Interface
-export interface BaseCosmicObject extends CosmicObject {
+export interface BaseCosmicObject {
   id: string
   title: string
   slug: string
@@ -38,6 +36,7 @@ export interface UserMetadata {
   email_verified?: boolean
   email_verified_at?: string
   password_reset_at?: string
+  onboarding_step?: number
   onboarding_completed?: boolean
   profile_completed?: boolean
   profile_photo?: {
@@ -79,6 +78,17 @@ export interface UserProfile {
   last_active: string
 }
 
+// Auth Context Types
+export interface AuthContextType {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  isAdmin: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  refreshUser: () => Promise<void>
+}
+
 // Form Data Types
 export interface SignupFormData {
   fullName: string
@@ -109,6 +119,21 @@ export interface CreateUserData {
   title: string
   slug: string
   metadata: Omit<UserMetadata, 'password_reset_at' | 'email_verified' | 'email_verified_at' | 'onboarding_completed' | 'profile_completed'>
+}
+
+// Onboarding Types
+export interface OnboardingData {
+  bio?: string
+  timezone?: string
+  availability?: string[]
+  years_experience?: string
+  industry_focus?: string[]
+  linkedin_url?: string
+  twitter_url?: string
+  website_url?: string
+  onboarding_step?: number
+  onboarding_completed?: boolean
+  profile_completed?: boolean
 }
 
 // API Response Types

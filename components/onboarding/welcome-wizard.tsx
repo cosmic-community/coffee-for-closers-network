@@ -55,6 +55,12 @@ export function WelcomeWizard() {
   }
 
   const step = steps[currentStep]
+  if (!step) {
+    // Fallback to first step if currentStep is undefined
+    setCurrentStep(0)
+    return null
+  }
+
   const Icon = step.icon
 
   return (

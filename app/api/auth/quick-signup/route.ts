@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
         active_member: true,
         join_date: currentDate,
         last_active: currentDate,
+        onboarding_step: 0,
         onboarding_completed: false,
         profile_completed: false
       }
@@ -117,8 +118,8 @@ export async function POST(request: NextRequest) {
     })
 
     // Return success with minimal user data
-    const userEmail = newUser.metadata?.email ?? email
-    const userName = newUser.metadata?.full_name ?? fullName
+    const userEmail = newUser.metadata?.email || email
+    const userName = newUser.metadata?.full_name || fullName
     
     return NextResponse.json({
       success: true,
