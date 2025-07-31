@@ -26,10 +26,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Extract role value from user metadata
+    const userRole = typeof user.metadata.role === 'object' 
+      ? user.metadata.role.key || 'member'
+      : user.metadata.role || 'member'
+
     // Generate password reset token (expires in 1 hour)
-    const resetToken = await signJWT(
-      { email: user.metadata.email, userId: user.id }
-    )
+    const resetToken = await signJWT({
+      email: user.metadata.email,
+      userId: user.id,
+      role: userRole
+    })
 
     // Send password reset email
     const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`

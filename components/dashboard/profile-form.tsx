@@ -34,9 +34,11 @@ export function ProfileForm({ user }: ProfileFormProps) {
     try {
       const roleValue = typeof user.metadata.role === 'string' ? user.metadata.role : user.metadata.role?.key || 'member'
       
-      const updateData = {
+      // Create update data that matches the User interface exactly
+      const updateData: Partial<User> = {
         title: formData.fullName,
         metadata: {
+          ...user.metadata, // Preserve all existing metadata
           full_name: formData.fullName,
           email: user.metadata.email,
           role: roleValue,
