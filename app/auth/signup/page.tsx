@@ -1,12 +1,14 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
-import { SignUpForm } from '@/components/auth/signup-form'
+import { QuickSignupForm } from '@/components/auth/quick-signup-form'
+import { SocialSignup } from '@/components/auth/social-signup'
+import { SignupBenefits } from '@/components/auth/signup-benefits'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Sign Up - Coffee for Closers',
-  description: 'Join the Coffee for Closers community of sales professionals.',
+  title: 'Join Coffee Closer Network - Connect with Sales Professionals',
+  description: 'Join our network of 500+ SaaS and software sales professionals. Get matched for 15-minute coffee chats and grow your career.',
 }
 
 export default async function SignUpPage() {
@@ -17,26 +19,69 @@ export default async function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Join Coffee for Closers
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Connect with fellow sales professionals
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex">
+        {/* Left side - Form */}
+        <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Join the Network
+              </h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
+                Connect with fellow sales professionals in just 2 minutes
+              </p>
+            </div>
+            
+            {/* Social Signup */}
+            <SocialSignup />
+            
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                  Or with email
+                </span>
+              </div>
+            </div>
+            
+            {/* Quick Signup Form */}
+            <QuickSignupForm />
+            
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Already have an account?{' '}
+                <a href="/auth/signin" className="font-medium text-primary-600 hover:text-primary-500">
+                  Sign in
+                </a>
+              </p>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                By signing up, you agree to our{' '}
+                <a href="/terms" className="underline">Terms</a> and{' '}
+                <a href="/privacy" className="underline">Privacy Policy</a>
+              </p>
+            </div>
+          </div>
         </div>
-        
-        <SignUpForm />
-        
-        <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?{' '}
-            <a href="/auth/signin" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign in
-            </a>
-          </p>
+
+        {/* Right side - Benefits */}
+        <div className="hidden lg:flex flex-1 bg-white dark:bg-gray-800">
+          <div className="flex-1 flex items-center justify-center py-12 px-8">
+            <div className="max-w-lg">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  Why Sales Professionals Love Us
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Join the fastest-growing network of SaaS sales professionals
+                </p>
+              </div>
+              <SignupBenefits />
+            </div>
+          </div>
         </div>
       </div>
     </div>
