@@ -66,17 +66,20 @@ export async function POST(request: NextRequest) {
         )
       }
     } catch (error) {
-      // User doesn't exist, which is what we want
+      // User doesn't exist, which is what we want for signup
     }
 
     // Hash password
     const hashedPassword = await hashPassword(password)
 
-    // Create user slug from email - add null check and provide fallback
+    // Create user slug from email with safe fallback
     const emailPrefix = email.split('@')[0]
-    const userSlug = emailPrefix ? emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'user'
+    const userSlug = emailPrefix ? emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') : `user-${Date.now()}`
     
-    // Prepare user data
+    // Get current date in YYYY-MM-DD format
+    const currentDate = new Date().toISOString().split('T')[0]
+    
+    // Prepare user data with proper null checks
     const userData: CreateUserData = {
       title: fullName,
       slug: userSlug,
@@ -96,8 +99,8 @@ export async function POST(request: NextRequest) {
         twitter_url: twitterUrl || '',
         website_url: websiteUrl || '',
         active_member: true,
-        join_date: new Date().toISOString().split('T')[0] || '',
-        last_active: new Date().toISOString().split('T')[0] || ''
+        join_date: currentDate,
+        last_active: currentDate
       }
     }
 
@@ -118,15 +121,31 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Signup error:', error)
     
+    // Provide more specific error messages based on error type
     if (error instanceof Error) {
+      // Check for common Cosmic CMS errors
+      if (error.message.includes('duplicate') || error.message.includes('already exists')) {
+        return NextResponse.json(
+          { error: 'An account with this email already exists' },
+          { status: 409 }
+        )
+      }
+      
+      if (error.message.includes('validation') || error.message.includes('required')) {
+        return NextResponse.json(
+          { error: 'Please check all required fields and try again' },
+          { status: 400 }
+        )
+      }
+      
       return NextResponse.json(
-        { error: error.message },
+        { error: 'Unable to create account. Please try again.' },
         { status: 500 }
       )
     }
     
     return NextResponse.json(
-      { error: 'Failed to create account. Please try again.' },
+      { error: 'Server error occurred. Please try again later.' },
       { status: 500 }
     )
   }
