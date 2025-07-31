@@ -41,7 +41,7 @@ export async function GET(
       id: user.id,
       title: user.title,
       slug: user.slug,
-      created_at: user.created_at,
+      created_at: user.created_at || '',
       metadata: {
         full_name: user.metadata.full_name,
         email: currentUser.id === id || currentUser.role === 'admin' ? user.metadata.email : '',

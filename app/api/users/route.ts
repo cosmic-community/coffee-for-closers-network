@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       id: user.id,
       title: user.title,
       slug: user.slug,
-      created_at: user.created_at,
+      created_at: user.created_at || '',
       metadata: {
         full_name: user.metadata.full_name,
         email: user.metadata.email,

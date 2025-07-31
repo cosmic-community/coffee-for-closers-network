@@ -86,6 +86,15 @@ export async function updateUser(id: string, updateData: UpdateUserData): Promis
   }
 }
 
+export async function deleteUser(id: string): Promise<void> {
+  try {
+    await cosmicWrite.objects.deleteOne(id)
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    throw new Error('Failed to delete user')
+  }
+}
+
 export async function getAllUsers(): Promise<User[]> {
   try {
     const { objects } = await cosmic.objects
@@ -120,6 +129,27 @@ export async function getAllPosts(): Promise<Post[]> {
   }
 }
 
+export async function getFeaturedPosts(): Promise<Post[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ 
+        type: 'posts',
+        'metadata.featured_post': true
+      })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+      .sort('created_at')
+      .limit(6)
+
+    return objects as Post[]
+  } catch (error) {
+    if ((error as any)?.status === 404) {
+      return []
+    }
+    throw error
+  }
+}
+
 // Blog articles operations
 export async function getAllBlogArticles(): Promise<BlogArticle[]> {
   try {
@@ -128,6 +158,27 @@ export async function getAllBlogArticles(): Promise<BlogArticle[]> {
       .props(['id', 'title', 'slug', 'metadata'])
       .depth(1)
       .sort('metadata.published_date')
+
+    return objects as BlogArticle[]
+  } catch (error) {
+    if ((error as any)?.status === 404) {
+      return []
+    }
+    throw error
+  }
+}
+
+export async function getFeaturedBlogArticles(): Promise<BlogArticle[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ 
+        type: 'blog-articles',
+        'metadata.featured_article': true
+      })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+      .sort('metadata.published_date')
+      .limit(6)
 
     return objects as BlogArticle[]
   } catch (error) {
@@ -175,7 +226,11 @@ export async function getAllCoffeeChats(): Promise<CoffeeChat[]> {
   }
 }
 
-export async function getCoffeeChatsForUser(userId: string): Promise<CoffeeChat[]> {
+export async function getAllChats(): Promise<CoffeeChat[]> {
+  return getAllCoffeeChats()
+}
+
+export async function getUserChats(userId: string): Promise<CoffeeChat[]> {
   try {
     const { objects } = await cosmic.objects
       .find({
@@ -199,7 +254,7 @@ export async function getCoffeeChatsForUser(userId: string): Promise<CoffeeChat[
 }
 
 // Call to actions operations
-export async function getActiveCallToActions(): Promise<CallToAction[]> {
+export async function getActiveCTAs(): Promise<CallToAction[]> {
   try {
     const { objects } = await cosmic.objects
       .find({

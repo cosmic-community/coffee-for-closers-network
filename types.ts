@@ -2,6 +2,7 @@ export interface User {
   id: string
   title: string
   slug: string
+  created_at?: string
   metadata: {
     full_name: string
     email: string
@@ -24,6 +25,9 @@ export interface User {
     active_member: boolean
     join_date: string
     last_active: string
+    email_verified?: boolean
+    email_verified_at?: string
+    password_reset_at?: string
   }
 }
 
@@ -63,12 +67,22 @@ export interface AuthUser {
   name: string
   role: string
   cosmicId: string
+  profile?: {
+    full_name?: string
+    job_title?: string
+    company?: string
+    profile_photo?: {
+      url: string
+      imgix_url: string
+    }
+  }
 }
 
 export interface Post {
   id: string
   title: string
   slug: string
+  created_at?: string
   metadata: {
     content: string
     author: User
@@ -85,10 +99,13 @@ export interface Post {
   }
 }
 
+export type PostType = 'tip' | 'win' | 'question' | 'resource' | 'general'
+
 export interface BlogArticle {
   id: string
   title: string
   slug: string
+  created_at?: string
   metadata: {
     headline: string
     excerpt: string
@@ -108,10 +125,13 @@ export interface BlogArticle {
   }
 }
 
+export type BlogCategory = 'sales-tips' | 'networking' | 'career-growth' | 'saas-industry' | 'community' | 'tools-resources'
+
 export interface CoffeeChat {
   id: string
   title: string
   slug: string
+  created_at?: string
   metadata: {
     chat_title: string
     participant_1: User
@@ -128,6 +148,8 @@ export interface CoffeeChat {
     auto_generated: boolean
   }
 }
+
+export type ChatStatus = 'scheduled' | 'completed' | 'cancelled' | 'no-show'
 
 export interface CallToAction {
   id: string
@@ -170,6 +192,9 @@ export interface AdminSettings {
     }
   }
 }
+
+export type TimeZoneKey = 'EST' | 'CST' | 'MST' | 'PST' | 'GMT' | 'CET'
+export type ExperienceLevel = '0-2' | '3-5' | '6-10' | '10+'
 
 export interface ApiResponse<T> {
   success: boolean
