@@ -178,8 +178,8 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Return success (don't include sensitive data) - handle potentially undefined metadata safely
-    const userEmail = newUser.metadata?.email ?? email
-    const userName = newUser.metadata?.full_name ?? fullName
+    const userEmail = newUser.metadata?.email || email
+    const userName = newUser.metadata?.full_name || fullName
     
     return NextResponse.json({
       success: true,
