@@ -23,7 +23,7 @@ export function generateRandomPassword(length: number = 12): string {
   return password
 }
 
-export function validatePasswordStrength(password: string): {
+export function validatePassword(password: string): {
   isValid: boolean
   errors: string[]
 } {
@@ -54,3 +54,6 @@ export function validatePasswordStrength(password: string): {
     errors
   }
 }
+
+// Alias for compatibility
+export const validatePasswordStrength = validatePassword

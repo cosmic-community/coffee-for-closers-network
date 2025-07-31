@@ -24,6 +24,24 @@ export interface MatchingStats {
   failedMatches: number
 }
 
+export function getMatchingStats(chats: CoffeeChat[]): MatchingStats {
+  const totalMatches = chats.length
+  const successfulMatches = chats.filter(chat => 
+    chat.metadata.status.key === 'completed'
+  ).length
+  const failedMatches = chats.filter(chat => 
+    chat.metadata.status.key === 'cancelled' || chat.metadata.status.key === 'no-show'
+  ).length
+
+  return {
+    totalUsers: 0, // This would be calculated separately
+    eligibleUsers: 0, // This would be calculated separately  
+    totalMatches,
+    successfulMatches,
+    failedMatches
+  }
+}
+
 class MatchingService {
   private defaultOptions: MatchingOptions = {
     maxChatsPerWeek: 2,

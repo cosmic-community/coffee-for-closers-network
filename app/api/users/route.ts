@@ -130,8 +130,8 @@ export async function POST(request: NextRequest) {
         twitter_url: twitterUrl,
         website_url: websiteUrl,
         active_member: true,
-        join_date: new Date().toISOString().split('T')[0],
-        last_active: new Date().toISOString().split('T')[0]
+        join_date: new Date().toISOString().split('T')[0] || '',
+        last_active: new Date().toISOString().split('T')[0] || ''
       }
     }
 

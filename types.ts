@@ -34,6 +34,9 @@ export interface User {
     active_member: boolean
     join_date: string
     last_active: string
+    email_verified?: boolean
+    email_verified_at?: string
+    password_reset_at?: string
   }
 }
 
@@ -43,6 +46,31 @@ export interface AuthUser {
   name: string
   role: string
   cosmicId: string
+  profile?: {
+    job_title: string
+    company: string
+    bio: string
+    profile_photo?: {
+      url: string
+      imgix_url: string
+    }
+    timezone: {
+      key: string
+      value: string
+    } | string
+    availability: string[]
+    years_experience: {
+      key: string
+      value: string
+    } | string
+    industry_focus: string[]
+    linkedin_url: string
+    twitter_url: string
+    website_url: string
+    active_member: boolean
+    join_date: string
+    last_active: string
+  }
 }
 
 export interface Post {

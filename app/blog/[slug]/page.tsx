@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/footer'
 import { BlogPost } from '@/components/blog/blog-post'
 import { RelatedPosts } from '@/components/blog/related-posts'
 import { getBlogArticleBySlug, getAllBlogArticles } from '@/lib/cosmic'
+import { BlogArticle } from '@/types'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 
@@ -45,9 +46,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound()
   }
 
-  // Get related articles (same category, excluding current article)
+  // Get related articles (same category, excluding current article) with proper typing
   const relatedArticles = allArticles
-    .filter(a => 
+    .filter((a: BlogArticle) => 
       a.id !== article.id && 
       a.metadata.category?.key === article.metadata.category?.key
     )

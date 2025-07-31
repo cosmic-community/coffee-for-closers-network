@@ -117,6 +117,9 @@ export async function getPosts(): Promise<Post[]> {
   }
 }
 
+// Alias for consistency with existing code
+export const getAllPosts = getPosts
+
 export async function getPostById(id: string): Promise<Post | null> {
   try {
     const { object } = await cosmic.objects
@@ -128,6 +131,24 @@ export async function getPostById(id: string): Promise<Post | null> {
   } catch (error) {
     if ((error as any).status === 404) {
       return null
+    }
+    throw error
+  }
+}
+
+export async function getFeaturedPosts(): Promise<Post[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ type: 'posts', 'metadata.featured_post': true })
+      .props(['id', 'title', 'slug', 'created_at', 'metadata'])
+      .depth(1)
+      .sort('-created_at')
+      .limit(3)
+    
+    return objects || []
+  } catch (error) {
+    if ((error as any).status === 404) {
+      return []
     }
     throw error
   }
@@ -151,6 +172,9 @@ export async function getBlogArticles(): Promise<BlogArticle[]> {
   }
 }
 
+// Alias for consistency with existing code
+export const getAllBlogArticles = getBlogArticles
+
 export async function getBlogArticleBySlug(slug: string): Promise<BlogArticle | null> {
   try {
     const { object } = await cosmic.objects
@@ -162,6 +186,24 @@ export async function getBlogArticleBySlug(slug: string): Promise<BlogArticle | 
   } catch (error) {
     if ((error as any).status === 404) {
       return null
+    }
+    throw error
+  }
+}
+
+export async function getFeaturedBlogArticles(): Promise<BlogArticle[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ type: 'blog-articles', 'metadata.featured_article': true })
+      .props(['id', 'title', 'slug', 'created_at', 'metadata'])
+      .depth(1)
+      .sort('-created_at')
+      .limit(3)
+    
+    return objects || []
+  } catch (error) {
+    if ((error as any).status === 404) {
+      return []
     }
     throw error
   }
@@ -184,6 +226,9 @@ export async function getCoffeeChats(): Promise<CoffeeChat[]> {
     throw error
   }
 }
+
+// Alias for consistency with existing code
+export const getAllChats = getCoffeeChats
 
 export async function getCoffeeChatsByUserId(userId: string): Promise<CoffeeChat[]> {
   try {
@@ -208,6 +253,9 @@ export async function getCoffeeChatsByUserId(userId: string): Promise<CoffeeChat
   }
 }
 
+// Alias for consistency with existing code
+export const getUserChats = getCoffeeChatsByUserId
+
 // Call to action functions
 export async function getCallToActions(): Promise<CallToAction[]> {
   try {
@@ -225,6 +273,9 @@ export async function getCallToActions(): Promise<CallToAction[]> {
     throw error
   }
 }
+
+// Alias for consistency with existing code
+export const getActiveCTAs = getCallToActions
 
 export async function getCallToActionByType(ctaType: string): Promise<CallToAction | null> {
   try {

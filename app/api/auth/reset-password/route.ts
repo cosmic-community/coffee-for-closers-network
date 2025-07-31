@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         ...user.metadata,
         password_hash: hashedPassword,
         password_reset_at: new Date().toISOString(),
-        last_active: new Date().toISOString().split('T')[0]
+        last_active: new Date().toISOString().split('T')[0] || ''
       }
     })
 

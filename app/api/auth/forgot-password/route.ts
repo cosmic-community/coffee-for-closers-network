@@ -28,8 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Generate password reset token (expires in 1 hour)
     const resetToken = await signJWT(
-      { email: user.metadata.email, userId: user.id },
-      '1h'
+      { email: user.metadata.email, userId: user.id }
     )
 
     // Send password reset email

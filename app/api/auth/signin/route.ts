@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       await updateUser(user.id, {
         metadata: {
           ...user.metadata,
-          last_active: new Date().toISOString().split('T')[0]
+          last_active: new Date().toISOString().split('T')[0] || ''
         }
       })
     } catch (error) {

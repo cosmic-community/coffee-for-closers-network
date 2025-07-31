@@ -7,6 +7,7 @@ import { UpcomingChats } from '@/components/dashboard/upcoming-chats'
 import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { getUserChats, getAllPosts, getUserById } from '@/lib/cosmic'
+import { CoffeeChat } from '@/types'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -32,12 +33,12 @@ export default async function DashboardPage() {
     redirect('/auth/signin')
   }
 
-  const upcomingChats = userChats.filter(chat => 
+  const upcomingChats = userChats.filter((chat: CoffeeChat) => 
     chat.metadata.status.key === 'scheduled' &&
     new Date(chat.metadata.scheduled_date) > new Date()
   )
 
-  const completedChats = userChats.filter(chat => 
+  const completedChats = userChats.filter((chat: CoffeeChat) => 
     chat.metadata.status.key === 'completed'
   )
 

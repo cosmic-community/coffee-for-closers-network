@@ -6,6 +6,7 @@ import { CTASection } from '@/components/home/cta-section'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { getActiveCTAs, getFeaturedBlogArticles, getFeaturedPosts } from '@/lib/cosmic'
+import { CallToAction } from '@/types'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -20,8 +21,8 @@ export default async function HomePage() {
     getFeaturedBlogArticles()
   ])
 
-  const heroCTA = ctas.find(cta => cta.metadata.cta_type.key === 'homepage-hero')
-  const secondaryCTA = ctas.find(cta => cta.metadata.cta_type.key === 'homepage-secondary')
+  const heroCTA = ctas.find((cta: CallToAction) => cta.metadata.cta_type.key === 'homepage-hero')
+  const secondaryCTA = ctas.find((cta: CallToAction) => cta.metadata.cta_type.key === 'homepage-secondary')
 
   return (
     <div className="min-h-screen">

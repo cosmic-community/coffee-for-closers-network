@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
             await updateUser(user.id, {
               metadata: {
                 ...user.metadata,
-                last_active: new Date().toISOString().split('T')[0]
+                last_active: new Date().toISOString().split('T')[0] || ''
               }
             })
           } catch (error) {
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || '',
 }
 
 export function isAdmin(user: AuthUser | null): boolean {

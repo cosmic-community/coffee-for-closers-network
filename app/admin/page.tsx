@@ -7,6 +7,7 @@ import { RecentActivity } from '@/components/admin/recent-activity'
 import { QuickActions } from '@/components/admin/quick-actions'
 import { getAllUsers, getAllChats, getAllPosts, getAdminSettings } from '@/lib/cosmic'
 import { getMatchingStats } from '@/lib/matching'
+import { User } from '@/types'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default async function AdminPage() {
           <div className="lg:col-span-8 space-y-8">
             <AdminStats 
               totalUsers={users.length}
-              activeUsers={users.filter(u => u.metadata.active_member).length}
+              activeUsers={users.filter((u: User) => u.metadata.active_member).length}
               totalChats={chats.length}
               totalPosts={posts.length}
               matchingStats={matchingStats}
