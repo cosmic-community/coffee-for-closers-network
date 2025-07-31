@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: cosmicUser.metadata?.full_name || cosmicUser.title || '',
             role: typeof cosmicUser.metadata?.role === 'string' 
               ? cosmicUser.metadata.role 
-              : cosmicUser.metadata?.role?.value || 'member',
+              : (cosmicUser.metadata?.role as any)?.value || 'member',
             cosmicId: cosmicUser.id,
             metadata: {
               full_name: cosmicUser.metadata?.full_name,
