@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'fal
 
 export async function signJWT(
   payload: Omit<JWTPayload, 'exp' | 'iat'>,
-  expiresIn: string = '1h'
+  expiresIn: string | number = '1h'
 ): Promise<string> {
   return jwt.sign(payload, JWT_SECRET, { expiresIn })
 }
