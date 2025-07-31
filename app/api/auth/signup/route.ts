@@ -108,13 +108,14 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Return success (don't include sensitive data)
+    // Fix TypeScript errors by providing fallback values for potentially undefined metadata
     return NextResponse.json({
       success: true,
       message: 'Account created successfully',
       user: {
         id: newUser.id,
-        email: newUser.metadata?.email || email,
-        name: newUser.metadata?.full_name || fullName
+        email: newUser.metadata?.email ?? email,
+        name: newUser.metadata?.full_name ?? fullName
       }
     })
 
