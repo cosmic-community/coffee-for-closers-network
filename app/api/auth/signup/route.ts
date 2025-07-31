@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0]
     
-    // Prepare user data with proper null checks
+    // Prepare user data with proper null checks and explicit type handling
     const userData: CreateUserData = {
       title: fullName,
       slug: userSlug,
@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
       message: 'Account created successfully',
       user: {
         id: newUser.id,
-        email: newUser.metadata.email,
-        name: newUser.metadata.full_name
+        email: newUser.metadata?.email || email,
+        name: newUser.metadata?.full_name || fullName
       }
     })
 
