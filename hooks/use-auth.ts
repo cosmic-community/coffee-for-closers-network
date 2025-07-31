@@ -20,14 +20,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const cosmicUser = data.user as CosmicUser
         
         if (cosmicUser) {
+          // Safely extract role value with proper type checking
+          let userRole = 'member'
+          if (cosmicUser.metadata?.role) {
+            if (typeof cosmicUser.metadata.role === 'string') {
+              userRole = cosmicUser.metadata.role
+            } else if (cosmicUser.metadata.role && typeof cosmicUser.metadata.role === 'object' && 'value' in cosmicUser.metadata.role) {
+              userRole = (cosmicUser.metadata.role as any).value || 'member'
+            }
+          }
+
           // Convert CosmicUser to AuthUser with proper metadata handling
           const authUser: AuthUser = {
             id: cosmicUser.id,
             email: cosmicUser.metadata?.email || '',
             name: cosmicUser.metadata?.full_name || cosmicUser.title || '',
-            role: typeof cosmicUser.metadata?.role === 'string' 
-              ? cosmicUser.metadata.role 
-              : (cosmicUser.metadata?.role as any)?.value || 'member',
+            role: userRole,
             cosmicId: cosmicUser.id,
             metadata: {
               full_name: cosmicUser.metadata?.full_name,
