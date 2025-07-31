@@ -90,12 +90,12 @@ export async function POST(request: NextRequest) {
         role: 'member',
         job_title: jobTitle,
         company: company,
-        bio: bio || '', // Ensure it's always a string
-        timezone: timezone || 'EST', // Ensure it's always a string
+        bio: bio ?? '', // Fix: Ensure it's always a string with nullish coalescing
+        timezone: timezone ?? 'EST', // Fix: Ensure it's always a string with nullish coalescing
         availability: availability,
-        years_experience: yearsExperience || '0-2', // Ensure it's always a string
+        years_experience: yearsExperience ?? '0-2', // Fix: Ensure it's always a string with nullish coalescing
         industry_focus: industryFocus || [],
-        linkedin_url: linkedinUrl || '', // Ensure it's always a string
+        linkedin_url: linkedinUrl ?? '', // Fix: Ensure it's always a string with nullish coalescing
         twitter_url: twitterUrl || '',
         website_url: websiteUrl || '',
         active_member: true,
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
 
     // Return success (don't include sensitive data)
     // Fix TypeScript errors by ensuring values are always strings with proper fallbacks
-    const userEmail = newUser.metadata?.email || email
-    const userName = newUser.metadata?.full_name || fullName
+    const userEmail = newUser.metadata?.email ?? email
+    const userName = newUser.metadata?.full_name ?? fullName
     
     return NextResponse.json({
       success: true,

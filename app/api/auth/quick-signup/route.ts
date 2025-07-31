@@ -87,16 +87,17 @@ export async function POST(request: NextRequest) {
     // Create user in Cosmic CMS
     const newUser = await createUser(userData)
 
-    // Generate welcome token for onboarding
+    // Generate welcome token for onboarding with required role property
     const welcomeToken = await signJWT({
       userId: newUser.id,
-      email: email.toLowerCase()
+      email: email.toLowerCase(),
+      role: 'member' // Fix: Add required role property
     })
 
     // Return success with minimal user data
     // Fix TypeScript errors by providing safe fallbacks for potentially undefined values
-    const userEmail = newUser.metadata?.email || email
-    const userName = newUser.metadata?.full_name || fullName
+    const userEmail = newUser.metadata?.email ?? email
+    const userName = newUser.metadata?.full_name ?? fullName
     
     return NextResponse.json({
       success: true,

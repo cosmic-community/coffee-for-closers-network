@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
-
-interface OnboardingData {
-  interests?: string[]
-  welcome_completed?: boolean
-  bio?: string
-  timezone?: string
-  availability?: string[]
-  years_experience?: string
-  industry_focus?: string[]
-  linkedin_url?: string
-  profile_completed?: boolean
-  onboarding_completed?: boolean
-  onboarding_step?: number
-}
+import { OnboardingData } from '@/types'
 
 export function useOnboarding() {
   const [isLoading, setIsLoading] = useState(false)
