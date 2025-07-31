@@ -37,39 +37,41 @@ export function RecentActivity({ posts }: RecentActivityProps) {
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
-                {post.metadata.author?.metadata?.profile_photo && (
+                {post.metadata?.author?.metadata?.profile_photo && (
                   <img
                     src={post.metadata.author.metadata.profile_photo.imgix_url}
-                    alt={post.metadata.author.metadata.full_name}
+                    alt={post.metadata?.author?.metadata?.full_name || 'User'}
                     className="w-8 h-8 rounded-full"
                   />
                 )}
                 <div>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {post.metadata.author?.metadata?.full_name || 'Anonymous'}
+                    {post.metadata?.author?.metadata?.full_name || 'Anonymous'}
                   </span>
                   <span className="text-sm text-gray-500 ml-2">
-                    {getRelativeTime(post.metadata.posted_date || post.created_at)}
+                    {getRelativeTime(post.metadata?.posted_date || post.created_at || new Date().toISOString())}
                   </span>
                 </div>
               </div>
-              <span className={`badge ${getPostTypeColor(post.metadata.post_type.key)}`}>
-                {post.metadata.post_type.value}
-              </span>
+              {post.metadata?.post_type && (
+                <span className={`badge ${getPostTypeColor(post.metadata.post_type.key || 'general')}`}>
+                  {post.metadata.post_type.value}
+                </span>
+              )}
             </div>
             
             <p className="text-gray-700 dark:text-gray-300 mb-3">
-              {post.metadata.content}
+              {post.metadata?.content || ''}
             </p>
             
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <button className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
                 <ThumbsUp className="h-4 w-4" />
-                <span>{post.metadata.likes_count || 0}</span>
+                <span>{post.metadata?.likes_count || 0}</span>
               </button>
               <button className="flex items-center space-x-1 hover:text-green-600 transition-colors">
                 <MessageSquare className="h-4 w-4" />
-                <span>{post.metadata.comments_count || 0}</span>
+                <span>{post.metadata?.comments_count || 0}</span>
               </button>
               <button className="flex items-center space-x-1 hover:text-purple-600 transition-colors">
                 <Share2 className="h-4 w-4" />

@@ -28,35 +28,37 @@ export function CommunitySection({ posts }: CommunitySectionProps) {
               className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between mb-4">
-                <span className={`badge ${getPostTypeColor(post.metadata.post_type.key)}`}>
-                  {post.metadata.post_type.value}
-                </span>
+                {post.metadata?.post_type && (
+                  <span className={`badge ${getPostTypeColor(post.metadata.post_type.key || 'general')}`}>
+                    {post.metadata.post_type.value}
+                  </span>
+                )}
                 <span className="text-sm text-gray-500">
-                  {getRelativeTime(post.metadata.posted_date || post.created_at)}
+                  {getRelativeTime(post.metadata?.posted_date || post.created_at || new Date().toISOString())}
                 </span>
               </div>
               
               <p className="text-gray-900 dark:text-white mb-4 line-clamp-3">
-                {post.metadata.content}
+                {post.metadata?.content || ''}
               </p>
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  {post.metadata.author?.metadata?.profile_photo && (
+                  {post.metadata?.author?.metadata?.profile_photo && (
                     <img
                       src={post.metadata.author.metadata.profile_photo.imgix_url}
-                      alt={post.metadata.author.metadata.full_name}
+                      alt={post.metadata?.author?.metadata?.full_name || 'User'}
                       className="w-8 h-8 rounded-full"
                     />
                   )}
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {post.metadata.author?.metadata?.full_name || 'Anonymous'}
+                    {post.metadata?.author?.metadata?.full_name || 'Anonymous'}
                   </span>
                 </div>
                 
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
-                  <span>👍 {post.metadata.likes_count || 0}</span>
-                  <span>💬 {post.metadata.comments_count || 0}</span>
+                  <span>👍 {post.metadata?.likes_count || 0}</span>
+                  <span>💬 {post.metadata?.comments_count || 0}</span>
                 </div>
               </div>
             </div>

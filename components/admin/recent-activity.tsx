@@ -29,11 +29,11 @@ export function RecentActivity({ recentUsers, recentPosts, recentChats }: Recent
       id: `user-${user.id}`,
       type: 'user_joined',
       user: {
-        name: user.metadata.full_name || user.title,
-        avatar: user.metadata.profile_photo?.imgix_url
+        name: user.metadata?.full_name || user.title,
+        avatar: user.metadata?.profile_photo?.imgix_url
       },
       details: `joined the community`,
-      timestamp: user.created_at
+      timestamp: user.created_at || new Date().toISOString()
     })
   })
 
@@ -43,26 +43,26 @@ export function RecentActivity({ recentUsers, recentPosts, recentChats }: Recent
       id: `post-${post.id}`,
       type: 'post_created',
       user: {
-        name: post.metadata.author?.metadata?.full_name || post.metadata.author?.title || 'Unknown User',
-        avatar: post.metadata.author?.metadata?.profile_photo?.imgix_url
+        name: post.metadata?.author?.metadata?.full_name || post.metadata?.author?.title || 'Unknown User',
+        avatar: post.metadata?.author?.metadata?.profile_photo?.imgix_url
       },
       details: `created a new post`,
-      timestamp: post.created_at
+      timestamp: post.created_at || new Date().toISOString()
     })
   })
 
   // Add chat activities
   recentChats.forEach(chat => {
-    if (chat.metadata.status?.key === 'completed') {
+    if (chat.metadata?.status?.key === 'completed') {
       activities.push({
         id: `chat-${chat.id}`,
         type: 'chat_completed',
         user: {
-          name: chat.metadata.participant_1?.metadata?.full_name || chat.metadata.participant_1?.title || 'Unknown User',
-          avatar: chat.metadata.participant_1?.metadata?.profile_photo?.imgix_url
+          name: chat.metadata?.participant_1?.metadata?.full_name || chat.metadata?.participant_1?.title || 'Unknown User',
+          avatar: chat.metadata?.participant_1?.metadata?.profile_photo?.imgix_url
         },
         details: `completed a coffee chat`,
-        timestamp: chat.metadata.scheduled_date || chat.created_at
+        timestamp: chat.metadata?.scheduled_date || chat.created_at || new Date().toISOString()
       })
     }
   })

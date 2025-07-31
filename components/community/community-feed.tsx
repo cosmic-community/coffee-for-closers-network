@@ -26,28 +26,32 @@ export function CommunityFeed({ posts }: CommunityFeedProps) {
         <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
           {/* Author Info */}
           <div className="flex items-center space-x-3 mb-4">
-            {post.metadata.author.metadata.profile_photo && (
+            {post.metadata?.author?.metadata?.profile_photo && (
               <img
                 src={`${post.metadata.author.metadata.profile_photo.imgix_url}?w=48&h=48&fit=crop&auto=format,compress`}
-                alt={post.metadata.author.metadata.full_name}
+                alt={post.metadata?.author?.metadata?.full_name || 'User'}
                 className="w-12 h-12 rounded-full"
               />
             )}
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">
-                {post.metadata.author.metadata.full_name}
+                {post.metadata?.author?.metadata?.full_name || 'Anonymous'}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {post.metadata.author.metadata.job_title} at {post.metadata.author.metadata.company}
-              </p>
+              {post.metadata?.author?.metadata?.job_title && post.metadata?.author?.metadata?.company && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {post.metadata.author.metadata.job_title} at {post.metadata.author.metadata.company}
+                </p>
+              )}
             </div>
             <div className="flex-1"></div>
             <div className="flex items-center space-x-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPostTypeColor(post.metadata.post_type.key)}`}>
-                {post.metadata.post_type.value}
-              </span>
+              {post.metadata?.post_type && (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPostTypeColor(post.metadata.post_type.key || 'general')}`}>
+                  {post.metadata.post_type.value}
+                </span>
+              )}
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {formatDate(post.metadata.posted_date || post.created_at)}
+                {formatDate(post.metadata?.posted_date || post.created_at || new Date().toISOString())}
               </span>
             </div>
           </div>
@@ -55,12 +59,12 @@ export function CommunityFeed({ posts }: CommunityFeedProps) {
           {/* Content */}
           <div className="mb-4">
             <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-              {post.metadata.content}
+              {post.metadata?.content || ''}
             </p>
           </div>
 
           {/* Featured Image */}
-          {post.metadata.featured_image && (
+          {post.metadata?.featured_image && (
             <div className="mb-4">
               <img
                 src={`${post.metadata.featured_image.imgix_url}?w=600&h=400&fit=crop&auto=format,compress`}
@@ -71,7 +75,7 @@ export function CommunityFeed({ posts }: CommunityFeedProps) {
           )}
 
           {/* Tags */}
-          {post.metadata.tags && post.metadata.tags.length > 0 && (
+          {post.metadata?.tags && post.metadata.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {post.metadata.tags.map((tag) => (
                 <span
@@ -88,11 +92,11 @@ export function CommunityFeed({ posts }: CommunityFeedProps) {
           <div className="flex items-center space-x-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
               <Heart className="h-4 w-4" />
-              <span className="text-sm">{post.metadata.likes_count || 0}</span>
+              <span className="text-sm">{post.metadata?.likes_count || 0}</span>
             </button>
             <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-colors">
               <MessageCircle className="h-4 w-4" />
-              <span className="text-sm">{post.metadata.comments_count || 0}</span>
+              <span className="text-sm">{post.metadata?.comments_count || 0}</span>
             </button>
             <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-green-500 transition-colors">
               <Share2 className="h-4 w-4" />

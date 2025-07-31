@@ -27,11 +27,11 @@ export function BlogSection({ articles }: BlogSectionProps) {
               key={article.id}
               className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
-              {article.metadata.featured_image && (
+              {article.metadata?.featured_image && (
                 <div className="aspect-video">
                   <img
                     src={`${article.metadata.featured_image.imgix_url}?w=800&h=400&fit=crop&auto=format,compress`}
-                    alt={article.metadata.headline}
+                    alt={article.metadata?.headline || 'Article image'}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -40,10 +40,10 @@ export function BlogSection({ articles }: BlogSectionProps) {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <span className="badge badge-primary">
-                    {article.metadata.category?.value || 'General'}
+                    {article.metadata?.category?.value || 'General'}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {article.metadata.read_time || 5} min read
+                    {article.metadata?.read_time || 5} min read
                   </span>
                 </div>
                 
@@ -52,30 +52,32 @@ export function BlogSection({ articles }: BlogSectionProps) {
                     href={`/blog/${article.slug}`}
                     className="hover:text-primary-600 transition-colors"
                   >
-                    {article.metadata.headline}
+                    {article.metadata?.headline || article.title}
                   </Link>
                 </h3>
                 
-                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                  {article.metadata.excerpt}
-                </p>
+                {article.metadata?.excerpt && (
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    {article.metadata.excerpt}
+                  </p>
+                )}
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    {article.metadata.author?.metadata?.profile_photo && (
+                    {article.metadata?.author?.metadata?.profile_photo && (
                       <img
                         src={article.metadata.author.metadata.profile_photo.imgix_url}
-                        alt={article.metadata.author.metadata.full_name}
+                        alt={article.metadata?.author?.metadata?.full_name || 'Author'}
                         className="w-8 h-8 rounded-full"
                       />
                     )}
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {article.metadata.author?.metadata?.full_name || 'Anonymous'}
+                      {article.metadata?.author?.metadata?.full_name || 'Anonymous'}
                     </span>
                   </div>
                   
                   <span className="text-sm text-gray-500">
-                    {formatDate(article.metadata.published_date || article.created_at)}
+                    {formatDate(article.metadata?.published_date || article.created_at || new Date().toISOString())}
                   </span>
                 </div>
               </div>
