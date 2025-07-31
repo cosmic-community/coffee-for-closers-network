@@ -26,7 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (typeof cosmicUser.metadata.role === 'string') {
               userRole = cosmicUser.metadata.role
             } else if (cosmicUser.metadata.role && typeof cosmicUser.metadata.role === 'object' && 'value' in cosmicUser.metadata.role) {
-              userRole = (cosmicUser.metadata.role as any).value || 'member'
+              const roleObj = cosmicUser.metadata.role as { value?: string }
+              userRole = roleObj.value || 'member'
             }
           }
 
