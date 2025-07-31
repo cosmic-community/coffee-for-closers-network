@@ -1,130 +1,117 @@
-import { NextRequest, NextResponse } from 'next/server'
+import Cookies from 'js-cookie'
+
+export const COOKIE_NAMES = {
+  AUTH_TOKEN: 'auth-token',
+  REFRESH_TOKEN: 'refresh-token',
+  THEME: 'theme',
+  LANGUAGE: 'language',
+} as const
 
 export interface CookieOptions {
-  httpOnly?: boolean
+  expires?: number | Date
   secure?: boolean
   sameSite?: 'strict' | 'lax' | 'none'
-  maxAge?: number
-  path?: string
   domain?: string
-}
-
-const defaultOptions: CookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  path: '/',
+  path?: string
 }
 
 export function setCookie(
-  response: NextResponse,
   name: string,
   value: string,
   options: CookieOptions = {}
 ): void {
-  const cookieOptions = { ...defaultOptions, ...options }
-  
-  let cookieString = `${name}=${encodeURIComponent(value)}`
-  
-  if (cookieOptions.maxAge !== undefined) {
-    cookieString += `; Max-Age=${cookieOptions.maxAge}`
+  const defaultOptions: CookieOptions = {
+    expires: 7, // 7 days
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
   }
-  
-  if (cookieOptions.path) {
-    cookieString += `; Path=${cookieOptions.path}`
-  }
-  
-  if (cookieOptions.domain) {
-    cookieString += `; Domain=${cookieOptions.domain}`
-  }
-  
-  if (cookieOptions.secure) {
-    cookieString += '; Secure'
-  }
-  
-  if (cookieOptions.httpOnly) {
-    cookieString += '; HttpOnly'
-  }
-  
-  if (cookieOptions.sameSite) {
-    cookieString += `; SameSite=${cookieOptions.sameSite}`
-  }
-  
-  response.headers.append('Set-Cookie', cookieString)
+
+  Cookies.set(name, value, { ...defaultOptions, ...options })
 }
 
-export function getCookie(request: NextRequest, name: string): string | undefined {
-  return request.cookies.get(name)?.value
+export function getCookie(name: string): string | undefined {
+  return Cookies.get(name)
 }
 
-export function deleteCookie(
-  response: NextResponse,
-  name: string,
-  options: Omit<CookieOptions, 'maxAge'> = {}
-): void {
-  setCookie(response, name, '', { ...options, maxAge: 0 })
+export function removeCookie(name: string, options: CookieOptions = {}): void {
+  const defaultOptions: CookieOptions = {
+    path: '/',
+  }
+
+  Cookies.remove(name, { ...defaultOptions, ...options })
 }
 
-// Common cookie names used in the application
-export const COOKIE_NAMES = {
-  THEME: 'theme',
-  USER_PREFERENCES: 'user_preferences',
-  LAST_ACTIVITY: 'last_activity',
-  REMEMBER_ME: 'remember_me',
-} as const
-
-// Helper functions for specific cookies
-export function setThemeCookie(response: NextResponse, theme: 'light' | 'dark' | 'system'): void {
-  setCookie(response, COOKIE_NAMES.THEME, theme, {
-    httpOnly: false, // Theme needs to be accessible to client-side JS
-    maxAge: 60 * 60 * 24 * 365, // 1 year
+export function removeAllCookies(): void {
+  Object.values(COOKIE_NAMES).forEach((cookieName) => {
+    removeCookie(cookieName)
   })
 }
 
-export function getThemeCookie(request: NextRequest): 'light' | 'dark' | 'system' | undefined {
-  const theme = getCookie(request, COOKIE_NAMES.THEME)
-  if (theme === 'light' || theme === 'dark' || theme === 'system') {
-    return theme
-  }
-  return undefined
-}
-
-export function setUserPreferencesCookie(
-  response: NextResponse,
-  preferences: Record<string, any>
-): void {
-  setCookie(response, COOKIE_NAMES.USER_PREFERENCES, JSON.stringify(preferences), {
-    httpOnly: false,
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+// Auth-specific cookie helpers
+export function setAuthToken(token: string): void {
+  setCookie(COOKIE_NAMES.AUTH_TOKEN, token, {
+    expires: 7,
+    secure: true,
+    sameSite: 'strict',
   })
 }
 
-export function getUserPreferencesCookie(request: NextRequest): Record<string, any> | null {
-  const preferences = getCookie(request, COOKIE_NAMES.USER_PREFERENCES)
-  if (preferences) {
-    try {
-      return JSON.parse(preferences)
-    } catch {
-      return null
-    }
-  }
-  return null
+export function getAuthToken(): string | undefined {
+  return getCookie(COOKIE_NAMES.AUTH_TOKEN)
 }
 
-export function setLastActivityCookie(response: NextResponse): void {
-  setCookie(response, COOKIE_NAMES.LAST_ACTIVITY, new Date().toISOString(), {
-    maxAge: 60 * 60 * 24, // 24 hours
+export function removeAuthToken(): void {
+  removeCookie(COOKIE_NAMES.AUTH_TOKEN)
+}
+
+export function setRefreshToken(token: string): void {
+  setCookie(COOKIE_NAMES.REFRESH_TOKEN, token, {
+    expires: 30, // 30 days
+    secure: true,
+    sameSite: 'strict',
   })
 }
 
-export function getLastActivityCookie(request: NextRequest): Date | null {
-  const lastActivity = getCookie(request, COOKIE_NAMES.LAST_ACTIVITY)
-  if (lastActivity) {
-    try {
-      return new Date(lastActivity)
-    } catch {
-      return null
-    }
+export function getRefreshToken(): string | undefined {
+  return getCookie(COOKIE_NAMES.REFRESH_TOKEN)
+}
+
+export function removeRefreshToken(): void {
+  removeCookie(COOKIE_NAMES.REFRESH_TOKEN)
+}
+
+// Theme helpers
+export function setTheme(theme: string): void {
+  setCookie(COOKIE_NAMES.THEME, theme, {
+    expires: 365, // 1 year
+  })
+}
+
+export function getTheme(): string | undefined {
+  return getCookie(COOKIE_NAMES.THEME)
+}
+
+// Language helpers
+export function setLanguage(language: string): void {
+  setCookie(COOKIE_NAMES.LANGUAGE, language, {
+    expires: 365, // 1 year
+  })
+}
+
+export function getLanguage(): string | undefined {
+  return getCookie(COOKIE_NAMES.LANGUAGE)
+}
+
+// Check if cookies are enabled
+export function areCookiesEnabled(): boolean {
+  try {
+    const testCookie = 'test-cookie'
+    setCookie(testCookie, 'test')
+    const isEnabled = getCookie(testCookie) === 'test'
+    removeCookie(testCookie)
+    return isEnabled
+  } catch (error) {
+    return false
   }
-  return null
 }

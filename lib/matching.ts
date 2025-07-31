@@ -1,359 +1,356 @@
 import { User, CoffeeChat, CreateChatData } from '@/types'
-import { createCoffeeChat, getActiveUsers, getAllChats } from '@/lib/cosmic'
-import { getTimezoneOffset, generateChatTitle } from '@/lib/utils'
+import { getAllUsers, getCoffeeChats, createObject } from '@/lib/cosmic'
 
-interface MatchingOptions {
-  maxChatsPerWeek?: number
-  preferSameTimezone?: boolean
-  preferDifferentExperience?: boolean
-  excludeRecentMatches?: boolean
+export interface MatchingOptions {
+  maxChatsPerWeek: number
+  excludeRecentMatches: boolean
+  recentMatchThreshold: number // days
+  preferredTimezones?: string[]
+  preferredIndustries?: string[]
 }
 
-export async function generateWeeklyMatches(
-  options: MatchingOptions = {}
-): Promise<CoffeeChat[]> {
-  const {
-    maxChatsPerWeek = 2,
-    preferSameTimezone = true,
-    preferDifferentExperience = true,
-    excludeRecentMatches = true
-  } = options
+export interface MatchResult {
+  participant1: User
+  participant2: User
+  score: number
+  reasons: string[]
+}
 
-  try {
-    const activeUsers = await getActiveUsers()
-    
-    if (activeUsers.length < 2) {
-      return []
-    }
+export interface MatchingStats {
+  totalUsers: number
+  eligibleUsers: number
+  totalMatches: number
+  successfulMatches: number
+  failedMatches: number
+}
 
-    const existingChats = excludeRecentMatches ? await getAllChats() : []
-    
-    const availableUsers = activeUsers.filter(user => 
-      user.metadata.availability && user.metadata.availability.length > 0
-    )
-
-    const matches = await findOptimalMatches(
-      availableUsers,
-      existingChats,
-      maxChatsPerWeek,
-      preferSameTimezone,
-      preferDifferentExperience
-    )
-
-    const createdChats: CoffeeChat[] = []
-    
-    for (const match of matches) {
-      const { user1, user2, scheduledDate } = match
-      
-      if (!user1 || !user2) {
-        continue
-      }
-      
-      const chatData: CreateChatData = {
-        title: generateChatTitle(user1.metadata.full_name || user1.title, user2.metadata.full_name || user2.title),
-        metadata: {
-          chat_title: generateChatTitle(user1.metadata.full_name || user1.title, user2.metadata.full_name || user2.title),
-          participant_1: user1.id,
-          participant_2: user2.id,
-          scheduled_date: scheduledDate,
-          status: 'scheduled',
-          week_of_match: getWeekOfMatch(),
-          auto_generated: true
-        }
-      }
-
-      const createdChat = await createCoffeeChat(chatData)
-      createdChats.push(createdChat)
-    }
-
-    return createdChats
-  } catch (error) {
-    console.error('Error generating weekly matches:', error)
-    throw new Error('Failed to generate weekly matches')
+class MatchingService {
+  private defaultOptions: MatchingOptions = {
+    maxChatsPerWeek: 2,
+    excludeRecentMatches: true,
+    recentMatchThreshold: 30, // 30 days
   }
-}
 
-async function findOptimalMatches(
-  users: User[],
-  existingChats: CoffeeChat[],
-  maxChatsPerWeek: number,
-  preferSameTimezone: boolean,
-  preferDifferentExperience: boolean
-): Promise<Array<{ user1: User; user2: User; scheduledDate: string }>> {
-  const matches: Array<{ user1: User; user2: User; scheduledDate: string }> = []
-  const userChatCounts = new Map<string, number>()
-  const recentMatches = getRecentMatches(existingChats)
-
-  users.forEach(user => {
-    userChatCounts.set(user.id, 0)
-  })
-
-  const currentWeek = getWeekOfMatch()
-  existingChats.forEach(chat => {
-    if (chat.metadata.week_of_match === currentWeek) {
-      const p1 = chat.metadata.participant_1
-      const p2 = chat.metadata.participant_2
+  async generateMatches(options?: Partial<MatchingOptions>): Promise<{
+    matches: MatchResult[]
+    stats: MatchingStats
+  }> {
+    const config = { ...this.defaultOptions, ...options }
+    
+    try {
+      const users = await this.getEligibleUsers(config)
+      const recentChats = await this.getRecentChats(config.recentMatchThreshold)
       
-      if (p1 && p2) {
-        const p1Count = userChatCounts.get(p1.id) || 0
-        const p2Count = userChatCounts.get(p2.id) || 0
-        userChatCounts.set(p1.id, p1Count + 1)
-        userChatCounts.set(p2.id, p2Count + 1)
+      const matches = this.calculateMatches(users, recentChats, config)
+      const optimizedMatches = this.optimizeMatches(matches)
+      
+      const stats: MatchingStats = {
+        totalUsers: users.length,
+        eligibleUsers: users.filter(u => u.metadata.active_member).length,
+        totalMatches: optimizedMatches.length,
+        successfulMatches: 0,
+        failedMatches: 0,
       }
+
+      return { matches: optimizedMatches, stats }
+    } catch (error) {
+      console.error('Error generating matches:', error)
+      throw error
     }
-  })
+  }
 
-  const potentialPairs: Array<{
-    user1: User
-    user2: User
-    score: number
-    scheduledDate: string
-  }> = []
+  async createCoffeeChats(matches: MatchResult[]): Promise<{
+    created: CoffeeChat[]
+    failed: { match: MatchResult; error: string }[]
+  }> {
+    const created: CoffeeChat[] = []
+    const failed: { match: MatchResult; error: string }[] = []
 
-  for (let i = 0; i < users.length; i++) {
-    for (let j = i + 1; j < users.length; j++) {
-      const user1 = users[i]
-      const user2 = users[j]
-
-      if (!user1 || !user2) {
-        continue
-      }
-
-      if (
-        (userChatCounts.get(user1.id) || 0) >= maxChatsPerWeek ||
-        (userChatCounts.get(user2.id) || 0) >= maxChatsPerWeek
-      ) {
-        continue
-      }
-
-      if (recentMatches.has(`${user1.id}-${user2.id}`) || 
-          recentMatches.has(`${user2.id}-${user1.id}`)) {
-        continue
-      }
-
-      const commonAvailability = findCommonAvailability(user1, user2)
-      if (commonAvailability.length === 0) {
-        continue
-      }
-
-      const score = calculateMatchScore(
-        user1,
-        user2,
-        preferSameTimezone,
-        preferDifferentExperience
-      )
-
-      const randomSlot = commonAvailability[
-        Math.floor(Math.random() * commonAvailability.length)
-      ]
-      
-      if (randomSlot) {
-        const scheduledDate = getNextDateForSlot(randomSlot)
-
-        potentialPairs.push({
-          user1,
-          user2,
-          score,
-          scheduledDate
+    for (const match of matches) {
+      try {
+        const chat = await this.createChatFromMatch(match)
+        created.push(chat)
+      } catch (error) {
+        failed.push({
+          match,
+          error: error instanceof Error ? error.message : 'Unknown error'
         })
       }
     }
+
+    return { created, failed }
   }
 
-  potentialPairs.sort((a, b) => b.score - a.score)
-
-  for (const pair of potentialPairs) {
-    const user1ChatCount = userChatCounts.get(pair.user1.id) || 0
-    const user2ChatCount = userChatCounts.get(pair.user2.id) || 0
-
-    if (user1ChatCount < maxChatsPerWeek && user2ChatCount < maxChatsPerWeek) {
-      matches.push({
-        user1: pair.user1,
-        user2: pair.user2,
-        scheduledDate: pair.scheduledDate
-      })
-
-      userChatCounts.set(pair.user1.id, user1ChatCount + 1)
-      userChatCounts.set(pair.user2.id, user2ChatCount + 1)
-    }
-  }
-
-  return matches
-}
-
-function findCommonAvailability(user1: User, user2: User): string[] {
-  const user1Availability = user1.metadata.availability || []
-  const user2Availability = user2.metadata.availability || []
-  
-  return user1Availability.filter(slot => 
-    user2Availability.includes(slot)
-  )
-}
-
-function calculateMatchScore(
-  user1: User,
-  user2: User,
-  preferSameTimezone: boolean,
-  preferDifferentExperience: boolean
-): number {
-  let score = 0
-
-  const user1Timezone = typeof user1.metadata.timezone === 'string' 
-    ? user1.metadata.timezone 
-    : user1.metadata.timezone?.key || 'EST'
-  const user2Timezone = typeof user2.metadata.timezone === 'string' 
-    ? user2.metadata.timezone 
-    : user2.metadata.timezone?.key || 'EST'
-  
-  if (preferSameTimezone) {
-    if (user1Timezone === user2Timezone) {
-      score += 10
-    } else {
-      const offset1 = getTimezoneOffset(user1Timezone)
-      const offset2 = getTimezoneOffset(user2Timezone)
-      const timezoneOffset = Math.abs(offset1 - offset2)
-      score -= timezoneOffset * 2
-    }
-  }
-
-  const user1Experience = typeof user1.metadata.years_experience === 'string' 
-    ? user1.metadata.years_experience 
-    : user1.metadata.years_experience?.key || '0-2'
-  const user2Experience = typeof user2.metadata.years_experience === 'string' 
-    ? user2.metadata.years_experience 
-    : user2.metadata.years_experience?.key || '0-2'
-  
-  if (preferDifferentExperience) {
-    if (user1Experience !== user2Experience) {
-      score += 5
-    }
-  }
-
-  const user1Industries = user1.metadata.industry_focus || []
-  const user2Industries = user2.metadata.industry_focus || []
-  
-  const commonIndustries = user1Industries.filter(industry => 
-    user2Industries.includes(industry)
-  )
-  
-  score += commonIndustries.length * 2
-
-  const commonAvailability = findCommonAvailability(user1, user2)
-  score += commonAvailability.length
-
-  return score
-}
-
-function getRecentMatches(existingChats: CoffeeChat[]): Set<string> {
-  const recentMatches = new Set<string>()
-  const threeWeeksAgo = new Date()
-  threeWeeksAgo.setDate(threeWeeksAgo.getDate() - 21)
-
-  existingChats.forEach(chat => {
-    const chatDate = new Date(chat.metadata.scheduled_date)
-    if (chatDate >= threeWeeksAgo) {
-      const p1 = chat.metadata.participant_1
-      const p2 = chat.metadata.participant_2
+  private async getEligibleUsers(options: MatchingOptions): Promise<User[]> {
+    const allUsers = await getAllUsers()
+    
+    return allUsers.filter(user => {
+      if (!user.metadata.active_member) return false
       
-      if (p1 && p2) {
-        recentMatches.add(`${p1.id}-${p2.id}`)
-        recentMatches.add(`${p2.id}-${p1.id}`)
+      // Check if user has preferred timezones
+      if (options.preferredTimezones && options.preferredTimezones.length > 0) {
+        const userTimezone = typeof user.metadata.timezone === 'string' 
+          ? user.metadata.timezone 
+          : user.metadata.timezone?.key
+        
+        if (!userTimezone || !options.preferredTimezones.includes(userTimezone)) {
+          return false
+        }
+      }
+      
+      // Check if user has preferred industries
+      if (options.preferredIndustries && options.preferredIndustries.length > 0) {
+        const hasMatchingIndustry = user.metadata.industry_focus.some(industry =>
+          options.preferredIndustries!.includes(industry)
+        )
+        
+        if (!hasMatchingIndustry) return false
+      }
+      
+      return true
+    })
+  }
+
+  private async getRecentChats(days: number): Promise<CoffeeChat[]> {
+    const allChats = await getCoffeeChats()
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - days)
+    
+    return allChats.filter(chat => {
+      const chatDate = new Date(chat.metadata.scheduled_date)
+      return chatDate >= cutoffDate
+    })
+  }
+
+  private calculateMatches(
+    users: User[],
+    recentChats: CoffeeChat[],
+    options: MatchingOptions
+  ): MatchResult[] {
+    const matches: MatchResult[] = []
+    const recentPairs = this.getRecentPairs(recentChats)
+    
+    for (let i = 0; i < users.length; i++) {
+      for (let j = i + 1; j < users.length; j++) {
+        const user1 = users[i]!
+        const user2 = users[j]!
+        
+        // Skip if recently matched
+        if (options.excludeRecentMatches) {
+          const pairKey = this.getPairKey(user1.id, user2.id)
+          if (recentPairs.has(pairKey)) continue
+        }
+        
+        // Calculate compatibility score
+        const score = this.calculateCompatibilityScore(user1, user2)
+        const reasons = this.getMatchReasons(user1, user2)
+        
+        matches.push({
+          participant1: user1,
+          participant2: user2,
+          score,
+          reasons,
+        })
       }
     }
-  })
-
-  return recentMatches
-}
-
-function getWeekOfMatch(): string {
-  const now = new Date()
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - now.getDay() + 1)
-  
-  return monday.toISOString().split('T')[0] || ''
-}
-
-function getNextDateForSlot(slot: string): string {
-  const [dayName] = slot.split(' ')
-  const dayIndex: Record<string, number> = {
-    'Monday': 1,
-    'Tuesday': 2,
-    'Wednesday': 3,
-    'Thursday': 4,
-    'Friday': 5
+    
+    return matches.sort((a, b) => b.score - a.score)
   }
 
-  const targetDay = dayIndex[dayName || 'Monday'] || 1
+  private optimizeMatches(matches: MatchResult[]): MatchResult[] {
+    const optimized: MatchResult[] = []
+    const usedUsers = new Set<string>()
+    
+    for (const match of matches) {
+      const user1Id = match.participant1.id
+      const user2Id = match.participant2.id
+      
+      if (!usedUsers.has(user1Id) && !usedUsers.has(user2Id)) {
+        optimized.push(match)
+        usedUsers.add(user1Id)
+        usedUsers.add(user2Id)
+      }
+    }
+    
+    return optimized
+  }
 
-  const nextWeek = new Date()
-  nextWeek.setDate(nextWeek.getDate() + (7 - nextWeek.getDay()) + targetDay)
-  
-  return nextWeek.toISOString().split('T')[0] || ''
-}
+  private calculateCompatibilityScore(user1: User, user2: User): number {
+    let score = 0
+    
+    // Industry overlap
+    const industries1 = user1.metadata.industry_focus
+    const industries2 = user2.metadata.industry_focus
+    const industryOverlap = industries1.filter(industry => 
+      industries2.includes(industry)
+    ).length
+    score += industryOverlap * 20
+    
+    // Experience level compatibility
+    const exp1 = typeof user1.metadata.years_experience === 'string' 
+      ? user1.metadata.years_experience 
+      : user1.metadata.years_experience?.key
+    const exp2 = typeof user2.metadata.years_experience === 'string' 
+      ? user2.metadata.years_experience 
+      : user2.metadata.years_experience?.key
+    
+    if (exp1 === exp2) score += 15
+    else if (this.isAdjacentExperienceLevel(exp1, exp2)) score += 10
+    
+    // Timezone compatibility
+    const tz1 = typeof user1.metadata.timezone === 'string' 
+      ? user1.metadata.timezone 
+      : user1.metadata.timezone?.key
+    const tz2 = typeof user2.metadata.timezone === 'string' 
+      ? user2.metadata.timezone 
+      : user2.metadata.timezone?.key
+    
+    if (tz1 === tz2) score += 25
+    else if (this.areCompatibleTimezones(tz1, tz2)) score += 15
+    
+    // Availability overlap
+    const availabilityOverlap = user1.metadata.availability.filter(slot =>
+      user2.metadata.availability.includes(slot)
+    ).length
+    score += availabilityOverlap * 5
+    
+    // Random factor for variety
+    score += Math.random() * 10
+    
+    return Math.round(score)
+  }
 
-export function getMatchingStats(chats: CoffeeChat[]): {
-  totalMatches: number
-  completedMatches: number
-  cancelledMatches: number
-  upcomingMatches: number
-  averageRating: number
-} {
-  const totalMatches = chats.length
-  const completedMatches = chats.filter(chat => 
-    chat.metadata.status?.key === 'completed'
-  ).length
-  const cancelledMatches = chats.filter(chat => 
-    chat.metadata.status?.key === 'cancelled'
-  ).length
-  const upcomingMatches = chats.filter(chat => 
-    chat.metadata.status?.key === 'scheduled'
-  ).length
+  private getMatchReasons(user1: User, user2: User): string[] {
+    const reasons: string[] = []
+    
+    // Industry overlap
+    const industryOverlap = user1.metadata.industry_focus.filter(industry =>
+      user2.metadata.industry_focus.includes(industry)
+    )
+    
+    if (industryOverlap.length > 0) {
+      reasons.push(`Shared interest in ${industryOverlap.join(', ')}`)
+    }
+    
+    // Experience level
+    const exp1 = typeof user1.metadata.years_experience === 'string' 
+      ? user1.metadata.years_experience 
+      : user1.metadata.years_experience?.value
+    const exp2 = typeof user2.metadata.years_experience === 'string' 
+      ? user2.metadata.years_experience 
+      : user2.metadata.years_experience?.value
+    
+    if (exp1 === exp2) {
+      reasons.push(`Similar experience level (${exp1})`)
+    }
+    
+    // Timezone
+    const tz1 = typeof user1.metadata.timezone === 'string' 
+      ? user1.metadata.timezone 
+      : user1.metadata.timezone?.value
+    const tz2 = typeof user2.metadata.timezone === 'string' 
+      ? user2.metadata.timezone 
+      : user2.metadata.timezone?.value
+    
+    if (tz1 === tz2) {
+      reasons.push(`Same timezone (${tz1})`)
+    }
+    
+    // Availability
+    const availabilityOverlap = user1.metadata.availability.filter(slot =>
+      user2.metadata.availability.includes(slot)
+    )
+    
+    if (availabilityOverlap.length > 2) {
+      reasons.push(`Multiple matching availability slots`)
+    }
+    
+    return reasons
+  }
 
-  const ratingsWithValues = chats
-    .filter(chat => chat.metadata.rating?.key)
-    .map(chat => parseInt(chat.metadata.rating?.key || '0'))
-    .filter(rating => rating > 0)
+  private getRecentPairs(chats: CoffeeChat[]): Set<string> {
+    const pairs = new Set<string>()
+    
+    chats.forEach(chat => {
+      const pairKey = this.getPairKey(
+        chat.metadata.participant_1.id,
+        chat.metadata.participant_2.id
+      )
+      pairs.add(pairKey)
+    })
+    
+    return pairs
+  }
 
-  const averageRating = ratingsWithValues.length > 0
-    ? ratingsWithValues.reduce((sum, rating) => sum + rating, 0) / ratingsWithValues.length
-    : 0
+  private getPairKey(userId1: string, userId2: string): string {
+    return [userId1, userId2].sort().join('-')
+  }
 
-  return {
-    totalMatches,
-    completedMatches,
-    cancelledMatches,
-    upcomingMatches,
-    averageRating
+  private isAdjacentExperienceLevel(exp1?: string, exp2?: string): boolean {
+    const levels = ['0-2', '3-5', '6-10', '10+']
+    const index1 = levels.indexOf(exp1 || '')
+    const index2 = levels.indexOf(exp2 || '')
+    
+    return Math.abs(index1 - index2) === 1
+  }
+
+  private areCompatibleTimezones(tz1?: string, tz2?: string): boolean {
+    const adjacentTimezones: Record<string, string[]> = {
+      'EST': ['CST'],
+      'CST': ['EST', 'MST'],
+      'MST': ['CST', 'PST'],
+      'PST': ['MST'],
+      'GMT': ['CET'],
+      'CET': ['GMT'],
+    }
+    
+    if (!tz1 || !tz2) return false
+    
+    return adjacentTimezones[tz1]?.includes(tz2) || false
+  }
+
+  private async createChatFromMatch(match: MatchResult): Promise<CoffeeChat> {
+    const nextMonday = this.getNextMonday()
+    const chatTitle = `${match.participant1.metadata.full_name} & ${match.participant2.metadata.full_name} Coffee Chat`
+    
+    const chatData: CreateChatData = {
+      title: chatTitle,
+      metadata: {
+        chat_title: chatTitle,
+        participant_1: match.participant1.id,
+        participant_2: match.participant2.id,
+        scheduled_date: nextMonday.toISOString().split('T')[0]!,
+        status: 'scheduled',
+        week_of_match: this.getWeekOfYear(nextMonday),
+        auto_generated: true,
+      },
+    }
+    
+    return createObject(chatData) as Promise<CoffeeChat>
+  }
+
+  private getNextMonday(): Date {
+    const today = new Date()
+    const monday = new Date(today)
+    const daysUntilMonday = (1 + 7 - today.getDay()) % 7
+    monday.setDate(today.getDate() + (daysUntilMonday || 7))
+    return monday
+  }
+
+  private getWeekOfYear(date: Date): string {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1)
+    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000
+    const weekOfYear = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
+    return `${date.getFullYear()}-W${weekOfYear.toString().padStart(2, '0')}`
   }
 }
 
-export function canGenerateMatches(settings: any): boolean {
-  return settings?.metadata?.matching_enabled === true
-}
+// Create and export singleton instance
+export const matchingService = new MatchingService()
 
-export function getNextMatchingDate(settings: any): Date {
-  const matchDay = settings?.metadata?.weekly_match_day?.key || 'monday'
-  const dayIndex: Record<string, number> = {
-    'monday': 1,
-    'tuesday': 2,
-    'wednesday': 3,
-    'thursday': 4,
-    'friday': 5
-  }
+// Export convenience functions
+export const generateMatches = (options?: Partial<MatchingOptions>) =>
+  matchingService.generateMatches(options)
 
-  const targetDay = dayIndex[matchDay] || 1
-
-  const now = new Date()
-  const nextDate = new Date(now)
-  
-  const currentDay = now.getDay()
-  const daysUntilMatch = (targetDay - currentDay + 7) % 7
-  
-  if (daysUntilMatch === 0) {
-    nextDate.setDate(now.getDate() + 7)
-  } else {
-    nextDate.setDate(now.getDate() + daysUntilMatch)
-  }
-  
-  return nextDate
-}
+export const createCoffeeChats = (matches: MatchResult[]) =>
+  matchingService.createCoffeeChats(matches)

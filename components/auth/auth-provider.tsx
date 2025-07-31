@@ -2,81 +2,59 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { AuthUser, SessionUser } from '@/types'
+import { AuthUser } from '@/types'
 
 interface AuthContextType {
-  user: SessionUser | null
+  user: AuthUser | null
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
   isMember: boolean
-  refreshUser: () => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: React.ReactNode
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const { data: session, status } = useSession()
-  const [user, setUser] = useState<SessionUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const refreshUser = async () => {
-    if (!session?.user) {
-      setUser(null)
-      return
-    }
-
-    try {
-      const response = await fetch('/api/auth/me')
-      if (response.ok) {
-        const data = await response.json()
-        setUser(data.user)
-      } else {
-        setUser(null)
-      }
-    } catch (error) {
-      console.error('Failed to refresh user:', error)
-      setUser(null)
-    }
-  }
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const isLoading = status === 'loading'
 
   useEffect(() => {
-    if (status === 'loading') {
-      setIsLoading(true)
-      return
-    }
-
-    if (status === 'unauthenticated' || !session?.user) {
+    if (session?.user) {
+      setUser(session.user as AuthUser)
+    } else {
       setUser(null)
-      setIsLoading(false)
-      return
     }
+  }, [session])
 
-    // Initial user fetch
-    refreshUser().finally(() => setIsLoading(false))
-  }, [session, status])
+  const signOut = async () => {
+    const { signOut: nextAuthSignOut } = await import('next-auth/react')
+    await nextAuthSignOut()
+    setUser(null)
+  }
 
-  const isAuthenticated = !!user
-  const isAdmin = user?.role === 'admin'
-  const isMember = user?.role === 'member' || user?.role === 'admin'
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === 'admin',
+    isMember: user?.role === 'member' || user?.role === 'admin',
+    signOut,
+  }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated,
-        isAdmin,
-        isMember,
-        refreshUser
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')

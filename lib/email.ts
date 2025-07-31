@@ -1,125 +1,215 @@
 import nodemailer from 'nodemailer'
-import { User, CoffeeChat, AdminSettings } from '@/types'
-import { formatDate } from '@/lib/utils'
 
-// Initialize email transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
+export interface EmailConfig {
+  host: string
+  port: number
+  secure: boolean
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
-
-export async function sendWelcomeEmail(
-  user: User,
-  settings: AdminSettings
-): Promise<void> {
-  if (!settings.metadata.welcome_email_enabled) {
-    return
-  }
-
-  const experienceValue = typeof user.metadata.years_experience === 'string' 
-    ? user.metadata.years_experience 
-    : user.metadata.years_experience?.value || 'Not specified'
-
-  const emailContent = {
-    from: settings.metadata.contact_email || process.env.SMTP_USER,
-    to: user.metadata.email,
-    subject: `Welcome to ${settings.metadata.site_title}!`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #3b82f6;">Welcome to ${settings.metadata.site_title}!</h1>
-        
-        <p>Hi ${user.metadata.full_name},</p>
-        
-        <p>Welcome to the ${settings.metadata.site_title} community! We're excited to have you join our network of SaaS and software sales professionals.</p>
-        
-        <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f6; border-radius: 8px;">
-          <h3 style="color: #374151; margin-top: 0;">Your Profile</h3>
-          <p style="color: #6b7280; margin-bottom: 0;">
-            <strong>Name:</strong> ${user.metadata.full_name}<br>
-            <strong>Job Title:</strong> ${user.metadata.job_title}<br>
-            <strong>Company:</strong> ${user.metadata.company}<br>
-            <strong>Experience:</strong> ${experienceValue}
-          </p>
-        </div>
-        
-        <p style="color: #6b7280;">
-          Best regards,<br>
-          The ${settings.metadata.site_title} Team
-        </p>
-      </div>
-    `
-  }
-
-  try {
-    await transporter.sendMail(emailContent)
-    console.log('Welcome email sent successfully to:', user.metadata.email)
-  } catch (error) {
-    console.error('Error sending welcome email:', error)
-    throw new Error('Failed to send welcome email')
+    user: string
+    pass: string
   }
 }
 
-export async function sendMatchNotificationEmail(
-  chat: CoffeeChat,
-  recipient: User,
-  otherParticipant: User,
-  settings: AdminSettings
-): Promise<void> {
-  if (!settings.metadata.match_notification_enabled) {
-    return
+export interface EmailMessage {
+  to: string | string[]
+  subject: string
+  text?: string
+  html?: string
+  from?: string
+  cc?: string | string[]
+  bcc?: string | string[]
+  attachments?: Array<{
+    filename: string
+    content: Buffer | string
+    contentType?: string
+  }>
+}
+
+export interface EmailTemplate {
+  subject: string
+  html: string
+  text?: string
+}
+
+class EmailService {
+  private transporter: nodemailer.Transporter | null = null
+  private fromAddress: string
+
+  constructor() {
+    this.fromAddress = process.env.EMAIL_FROM || 'noreply@coffeeforclosers.com'
+    this.initializeTransporter()
   }
 
-  const meetingLink = chat.metadata.meeting_link || settings.metadata.calendly_url
+  private initializeTransporter(): void {
+    const config: EmailConfig = {
+      host: process.env.EMAIL_HOST || 'localhost',
+      port: parseInt(process.env.EMAIL_PORT || '587'),
+      secure: process.env.EMAIL_SECURE === 'true',
+      auth: {
+        user: process.env.EMAIL_USER || '',
+        pass: process.env.EMAIL_PASS || '',
+      },
+    }
 
-  const emailContent = {
-    from: settings.metadata.contact_email || process.env.SMTP_USER,
-    to: recipient.metadata.email,
-    subject: `New Coffee Chat Match - ${otherParticipant.metadata.full_name}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #3b82f6;">You've Got a New Coffee Chat Match! ☕</h1>
-        
-        <p>Hi ${recipient.metadata.full_name},</p>
-        
-        <p>Great news! You've been matched with <strong>${otherParticipant.metadata.full_name}</strong> for a 15-minute coffee chat.</p>
-        
-        <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f6; border-radius: 8px;">
-          <h3 style="color: #374151; margin-top: 0;">Match Details</h3>
-          <p style="color: #6b7280; margin-bottom: 0;">
-            <strong>Your Match:</strong> ${otherParticipant.metadata.full_name}<br>
-            <strong>Job Title:</strong> ${otherParticipant.metadata.job_title}<br>
-            <strong>Company:</strong> ${otherParticipant.metadata.company}<br>
-            <strong>Scheduled Date:</strong> ${formatDate(chat.metadata.scheduled_date)}
-          </p>
+    try {
+      this.transporter = nodemailer.createTransporter(config)
+    } catch (error) {
+      console.error('Failed to initialize email transporter:', error)
+    }
+  }
+
+  async sendEmail(message: EmailMessage): Promise<boolean> {
+    if (!this.transporter) {
+      console.error('Email transporter not initialized')
+      return false
+    }
+
+    try {
+      const result = await this.transporter.sendMail({
+        ...message,
+        from: message.from || this.fromAddress,
+      })
+
+      console.log('Email sent successfully:', result.messageId)
+      return true
+    } catch (error) {
+      console.error('Failed to send email:', error)
+      return false
+    }
+  }
+
+  async sendWelcomeEmail(
+    userEmail: string,
+    userName: string
+  ): Promise<boolean> {
+    const template = this.getWelcomeEmailTemplate(userName)
+    
+    return this.sendEmail({
+      to: userEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    })
+  }
+
+  async sendPasswordResetEmail(
+    userEmail: string,
+    resetToken: string
+  ): Promise<boolean> {
+    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`
+    const template = this.getPasswordResetTemplate(resetUrl)
+    
+    return this.sendEmail({
+      to: userEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    })
+  }
+
+  async sendMatchNotificationEmail(
+    userEmail: string,
+    userName: string,
+    matchName: string,
+    meetingLink: string
+  ): Promise<boolean> {
+    const template = this.getMatchNotificationTemplate(userName, matchName, meetingLink)
+    
+    return this.sendEmail({
+      to: userEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    })
+  }
+
+  private getWelcomeEmailTemplate(userName: string): EmailTemplate {
+    return {
+      subject: 'Welcome to Coffee for Closers! ☕',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1>Welcome to Coffee for Closers, ${userName}! ☕</h1>
+          <p>We're excited to have you join our community of sales professionals.</p>
+          <p>Here's what you can do next:</p>
+          <ul>
+            <li>Complete your profile to get better matches</li>
+            <li>Browse the community feed for tips and insights</li>
+            <li>Get matched for virtual coffee chats with other members</li>
+          </ul>
+          <p>Happy networking!</p>
+          <p>The Coffee for Closers Team</p>
         </div>
-        
-        ${meetingLink ? `
-          <div style="margin: 30px 0; text-align: center;">
-            <a href="${meetingLink}" 
-               style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
-              Schedule Your Meeting
-            </a>
-          </div>
-        ` : ''}
-        
-        <p style="color: #6b7280;">
-          Happy networking!<br>
-          The ${settings.metadata.site_title} Team
-        </p>
-      </div>
-    `
+      `,
+      text: `Welcome to Coffee for Closers, ${userName}! We're excited to have you join our community.`,
+    }
   }
 
-  try {
-    await transporter.sendMail(emailContent)
-    console.log('Match notification email sent successfully to:', recipient.metadata.email)
-  } catch (error) {
-    console.error('Error sending match notification email:', error)
-    throw new Error('Failed to send match notification email')
+  private getPasswordResetTemplate(resetUrl: string): EmailTemplate {
+    return {
+      subject: 'Reset Your Password - Coffee for Closers',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1>Reset Your Password</h1>
+          <p>You requested a password reset for your Coffee for Closers account.</p>
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Reset Password</a>
+          <p>This link will expire in 1 hour.</p>
+          <p>If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+      text: `Reset your password: ${resetUrl}`,
+    }
+  }
+
+  private getMatchNotificationTemplate(
+    userName: string,
+    matchName: string,
+    meetingLink: string
+  ): EmailTemplate {
+    return {
+      subject: `You've been matched with ${matchName}! ☕`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1>New Coffee Chat Match! ☕</h1>
+          <p>Hi ${userName},</p>
+          <p>Great news! You've been matched with ${matchName} for a virtual coffee chat.</p>
+          <p>Join your meeting:</p>
+          <a href="${meetingLink}" style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Join Coffee Chat</a>
+          <p>Have a great conversation!</p>
+          <p>The Coffee for Closers Team</p>
+        </div>
+      `,
+      text: `You've been matched with ${matchName}! Join your meeting: ${meetingLink}`,
+    }
+  }
+
+  async testConnection(): Promise<boolean> {
+    if (!this.transporter) {
+      return false
+    }
+
+    try {
+      await this.transporter.verify()
+      return true
+    } catch (error) {
+      console.error('Email connection test failed:', error)
+      return false
+    }
   }
 }
+
+// Create and export singleton instance
+export const emailService = new EmailService()
+
+// Export individual functions for convenience
+export const sendEmail = (message: EmailMessage) => emailService.sendEmail(message)
+export const sendWelcomeEmail = (email: string, name: string) => 
+  emailService.sendWelcomeEmail(email, name)
+export const sendPasswordResetEmail = (email: string, token: string) => 
+  emailService.sendPasswordResetEmail(email, token)
+export const sendMatchNotificationEmail = (
+  email: string, 
+  name: string, 
+  matchName: string, 
+  meetingLink: string
+) => emailService.sendMatchNotificationEmail(email, name, matchName, meetingLink)
