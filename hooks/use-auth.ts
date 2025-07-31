@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json()
         const cosmicUser = data.user as CosmicUser
         
-        if (cosmicUser) {
+        if (cosmicUser && cosmicUser.id) {
           // Safely extract role value with proper type checking
           let userRole = 'member'
           if (cosmicUser.metadata?.role) {
@@ -39,28 +39,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: userRole,
             cosmicId: cosmicUser.id,
             metadata: {
-              full_name: cosmicUser.metadata?.full_name,
-              email: cosmicUser.metadata?.email,
-              password_hash: cosmicUser.metadata?.password_hash,
-              role: cosmicUser.metadata?.role,
-              job_title: cosmicUser.metadata?.job_title,
-              company: cosmicUser.metadata?.company,
-              bio: cosmicUser.metadata?.bio,
-              timezone: cosmicUser.metadata?.timezone,
-              availability: cosmicUser.metadata?.availability,
-              years_experience: cosmicUser.metadata?.years_experience,
-              industry_focus: cosmicUser.metadata?.industry_focus,
-              linkedin_url: cosmicUser.metadata?.linkedin_url,
-              twitter_url: cosmicUser.metadata?.twitter_url,
-              website_url: cosmicUser.metadata?.website_url,
-              active_member: cosmicUser.metadata?.active_member,
-              join_date: cosmicUser.metadata?.join_date,
-              last_active: cosmicUser.metadata?.last_active,
-              onboarding_completed: cosmicUser.metadata?.onboarding_completed,
-              profile_completed: cosmicUser.metadata?.profile_completed,
-              onboarding_step: cosmicUser.metadata?.onboarding_step,
-              welcome_completed: cosmicUser.metadata?.welcome_completed,
-              interests: cosmicUser.metadata?.interests
+              full_name: cosmicUser.metadata?.full_name || undefined,
+              email: cosmicUser.metadata?.email || undefined,
+              password_hash: cosmicUser.metadata?.password_hash || undefined,
+              role: cosmicUser.metadata?.role || undefined,
+              job_title: cosmicUser.metadata?.job_title || undefined,
+              company: cosmicUser.metadata?.company || undefined,
+              bio: cosmicUser.metadata?.bio || undefined,
+              timezone: cosmicUser.metadata?.timezone || undefined,
+              availability: cosmicUser.metadata?.availability || undefined,
+              years_experience: cosmicUser.metadata?.years_experience || undefined,
+              industry_focus: cosmicUser.metadata?.industry_focus || undefined,
+              linkedin_url: cosmicUser.metadata?.linkedin_url || undefined,
+              twitter_url: cosmicUser.metadata?.twitter_url || undefined,
+              website_url: cosmicUser.metadata?.website_url || undefined,
+              active_member: cosmicUser.metadata?.active_member || undefined,
+              join_date: cosmicUser.metadata?.join_date || undefined,
+              last_active: cosmicUser.metadata?.last_active || undefined,
+              onboarding_completed: cosmicUser.metadata?.onboarding_completed || undefined,
+              profile_completed: cosmicUser.metadata?.profile_completed || undefined,
+              onboarding_step: cosmicUser.metadata?.onboarding_step || undefined,
+              welcome_completed: cosmicUser.metadata?.welcome_completed || undefined,
+              interests: cosmicUser.metadata?.interests || undefined
             }
           }
           
@@ -75,12 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const refreshUser = async () => {
+  const refreshUser = async (): Promise<void> => {
     const updatedUser = await fetchUser()
     setUser(updatedUser)
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<{ user: AuthUser }> => {
     const response = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -94,11 +94,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await response.json()
-    setUser(data.user)
+    if (data.user) {
+      setUser(data.user)
+    }
     return data
   }
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     try {
       await fetch('/api/auth/signout', {
         method: 'POST',
@@ -113,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = async (): Promise<void> => {
       const user = await fetchUser()
       setUser(user)
       setIsLoading(false)
