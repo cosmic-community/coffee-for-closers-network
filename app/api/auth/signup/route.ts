@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword, validatePassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
 import { CreateUserData } from '@/types'
+import { 
+  validateEmail, 
+  validateName, 
+  validateJobTitle, 
+  validateCompany,
+  validateBio,
+  validateUrl,
+  validateLinkedInUrl,
+  validateTwitterUrl,
+  validateAvailability
+} from '@/lib/validations/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,48 +23,104 @@ export async function POST(request: NextRequest) {
       password,
       jobTitle,
       company,
-      bio,
-      timezone,
-      availability,
-      yearsExperience,
-      industryFocus,
-      linkedinUrl,
-      twitterUrl,
-      websiteUrl
+      bio = '',
+      timezone = 'EST',
+      availability = [],
+      yearsExperience = '0-2',
+      industryFocus = [],
+      linkedinUrl = '',
+      twitterUrl = '',
+      websiteUrl = ''
     } = body
 
     // Validate required fields
-    if (!fullName || !email || !password || !jobTitle || !company) {
+    const nameValidation = validateName(fullName)
+    if (!nameValidation.isValid) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: nameValidation.errors[0] },
         { status: 400 }
       )
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    const emailValidation = validateEmail(email)
+    if (!emailValidation.isValid) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: emailValidation.errors[0] },
         { status: 400 }
       )
     }
 
-    // Validate password strength
     const passwordValidation = validatePassword(password)
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: 'Password does not meet requirements', details: passwordValidation.errors },
+        { error: 'Password requirements not met', details: passwordValidation.errors },
         { status: 400 }
       )
     }
 
-    // Validate availability
-    if (!availability || !Array.isArray(availability) || availability.length === 0) {
+    const jobTitleValidation = validateJobTitle(jobTitle)
+    if (!jobTitleValidation.isValid) {
       return NextResponse.json(
-        { error: 'Please select your availability' },
+        { error: jobTitleValidation.errors[0] },
         { status: 400 }
       )
+    }
+
+    const companyValidation = validateCompany(company)
+    if (!companyValidation.isValid) {
+      return NextResponse.json(
+        { error: companyValidation.errors[0] },
+        { status: 400 }
+      )
+    }
+
+    const availabilityValidation = validateAvailability(availability)
+    if (!availabilityValidation.isValid) {
+      return NextResponse.json(
+        { error: availabilityValidation.errors[0] },
+        { status: 400 }
+      )
+    }
+
+    // Validate optional fields
+    if (bio) {
+      const bioValidation = validateBio(bio)
+      if (!bioValidation.isValid) {
+        return NextResponse.json(
+          { error: bioValidation.errors[0] },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (linkedinUrl) {
+      const linkedinValidation = validateLinkedInUrl(linkedinUrl)
+      if (!linkedinValidation.isValid) {
+        return NextResponse.json(
+          { error: linkedinValidation.errors[0] },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (twitterUrl) {
+      const twitterValidation = validateTwitterUrl(twitterUrl)
+      if (!twitterValidation.isValid) {
+        return NextResponse.json(
+          { error: twitterValidation.errors[0] },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (websiteUrl) {
+      const websiteValidation = validateUrl(websiteUrl, 'Website URL')
+      if (!websiteValidation.isValid) {
+        return NextResponse.json(
+          { error: websiteValidation.errors[0] },
+          { status: 400 }
+        )
+      }
     }
 
     // Check if user already exists
@@ -79,7 +146,7 @@ export async function POST(request: NextRequest) {
     // Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0]
     
-    // Prepare user data with explicit string values to fix TypeScript errors
+    // Prepare user data
     const userData: CreateUserData = {
       title: fullName,
       slug: userSlug,
@@ -90,14 +157,14 @@ export async function POST(request: NextRequest) {
         role: 'member',
         job_title: jobTitle,
         company: company,
-        bio: bio ?? '', // Fix: Ensure it's always a string with nullish coalescing
-        timezone: timezone ?? 'EST', // Fix: Ensure it's always a string with nullish coalescing
+        bio: bio,
+        timezone: timezone,
         availability: availability,
-        years_experience: yearsExperience ?? '0-2', // Fix: Ensure it's always a string with nullish coalescing
-        industry_focus: industryFocus || [],
-        linkedin_url: linkedinUrl ?? '', // Fix: Ensure it's always a string with nullish coalescing
-        twitter_url: twitterUrl || '',
-        website_url: websiteUrl || '',
+        years_experience: yearsExperience,
+        industry_focus: industryFocus,
+        linkedin_url: linkedinUrl,
+        twitter_url: twitterUrl,
+        website_url: websiteUrl,
         active_member: true,
         join_date: currentDate,
         last_active: currentDate
@@ -108,7 +175,6 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Return success (don't include sensitive data)
-    // Fix TypeScript errors by ensuring values are always strings with proper fallbacks
     const userEmail = newUser.metadata?.email ?? email
     const userName = newUser.metadata?.full_name ?? fullName
     

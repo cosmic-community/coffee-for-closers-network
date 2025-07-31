@@ -3,6 +3,12 @@ import { hashPassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
 import { CreateUserData } from '@/types'
 import { signJWT } from '@/lib/jwt'
+import { 
+  validateEmail, 
+  validateName, 
+  validateJobTitle, 
+  validateCompany 
+} from '@/lib/validations/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,24 +16,40 @@ export async function POST(request: NextRequest) {
     const { fullName, email, password, jobTitle, company } = body
 
     // Validate required fields
-    if (!fullName || !email || !password || !jobTitle || !company) {
+    const nameValidation = validateName(fullName)
+    if (!nameValidation.isValid) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: nameValidation.errors[0] },
         { status: 400 }
       )
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    const emailValidation = validateEmail(email)
+    if (!emailValidation.isValid) {
       return NextResponse.json(
-        { error: 'Please enter a valid email address' },
+        { error: emailValidation.errors[0] },
         { status: 400 }
       )
     }
 
-    // Validate password length
-    if (password.length < 8) {
+    const jobTitleValidation = validateJobTitle(jobTitle)
+    if (!jobTitleValidation.isValid) {
+      return NextResponse.json(
+        { error: jobTitleValidation.errors[0] },
+        { status: 400 }
+      )
+    }
+
+    const companyValidation = validateCompany(company)
+    if (!companyValidation.isValid) {
+      return NextResponse.json(
+        { error: companyValidation.errors[0] },
+        { status: 400 }
+      )
+    }
+
+    // Validate password length (simplified for quick signup)
+    if (!password || password.length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters long' },
         { status: 400 }
@@ -57,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0]
     
-    // Prepare user data with explicit string values to fix TypeScript errors
+    // Prepare user data
     const userData: CreateUserData = {
       title: fullName,
       slug: userSlug,
@@ -68,34 +90,33 @@ export async function POST(request: NextRequest) {
         role: 'member',
         job_title: jobTitle,
         company: company,
-        bio: '', // Explicit empty string instead of undefined
-        timezone: 'EST', // Default timezone
-        availability: ['Morning'], // Default availability
-        years_experience: '0-2', // Default experience
+        bio: '',
+        timezone: 'EST',
+        availability: ['Morning'],
+        years_experience: '0-2',
         industry_focus: [],
-        linkedin_url: '', // Explicit empty string instead of undefined
+        linkedin_url: '',
         twitter_url: '',
         website_url: '',
         active_member: true,
         join_date: currentDate,
         last_active: currentDate,
-        onboarding_completed: false, // Track onboarding status
-        profile_completed: false // Track profile completion
+        onboarding_completed: false,
+        profile_completed: false
       }
     }
 
     // Create user in Cosmic CMS
     const newUser = await createUser(userData)
 
-    // Generate welcome token for onboarding with required role property
+    // Generate welcome token for onboarding
     const welcomeToken = await signJWT({
       userId: newUser.id,
       email: email.toLowerCase(),
-      role: 'member' // Fix: Add required role property
+      role: 'member'
     })
 
     // Return success with minimal user data
-    // Fix TypeScript errors by providing safe fallbacks for potentially undefined values
     const userEmail = newUser.metadata?.email ?? email
     const userName = newUser.metadata?.full_name ?? fullName
     

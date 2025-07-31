@@ -7,11 +7,16 @@ export interface PasswordValidationResult {
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12
-  return bcrypt.hash(password, saltRounds)
+  return await bcrypt.hash(password, saltRounds)
 }
 
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword)
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(password, hash)
+  } catch (error) {
+    console.error('Password verification error:', error)
+    return false
+  }
 }
 
 export function validatePassword(password: string): PasswordValidationResult {
@@ -48,22 +53,29 @@ export function validatePassword(password: string): PasswordValidationResult {
   }
 }
 
-export function generateSecurePassword(): string {
-  const length = 12
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
-  let password = ''
+export function validatePasswordStrength(password: string): {
+  score: number
+  feedback: string[]
+} {
+  let score = 0
+  const feedback: string[] = []
   
-  // Ensure at least one character from each required category
-  password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]
-  password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]
-  password += '0123456789'[Math.floor(Math.random() * 10)]
-  password += '!@#$%^&*'[Math.floor(Math.random() * 8)]
+  if (password.length >= 8) score += 1
+  else feedback.push('Use at least 8 characters')
   
-  // Fill the rest randomly
-  for (let i = password.length; i < length; i++) {
-    password += charset[Math.floor(Math.random() * charset.length)]
-  }
+  if (/[a-z]/.test(password)) score += 1
+  else feedback.push('Add lowercase letters')
   
-  // Shuffle the password
-  return password.split('').sort(() => Math.random() - 0.5).join('')
+  if (/[A-Z]/.test(password)) score += 1
+  else feedback.push('Add uppercase letters')
+  
+  if (/\d/.test(password)) score += 1
+  else feedback.push('Add numbers')
+  
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 1
+  else feedback.push('Add special characters')
+  
+  if (password.length >= 12) score += 1
+  
+  return { score, feedback }
 }

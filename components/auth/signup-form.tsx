@@ -9,6 +9,7 @@ import {
   getExperienceLevels, 
   getIndustryOptions 
 } from '@/lib/utils'
+import { validateSignupForm } from '@/lib/validations/auth'
 import toast from 'react-hot-toast'
 
 interface SignUpFormData {
@@ -48,27 +49,20 @@ export function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setValidationErrors([])
 
     try {
-      // Validate required fields
-      if (!formData.fullName || !formData.email || !formData.password || !formData.jobTitle || !formData.company) {
-        toast.error('Please fill in all required fields')
-        return
-      }
-
-      // Validate password confirmation
-      if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match')
-        return
-      }
-
-      if (formData.availability.length === 0) {
-        toast.error('Please select your availability')
+      // Validate form data
+      const validation = validateSignupForm(formData)
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors)
+        toast.error('Please fix the errors below')
         return
       }
 
@@ -135,6 +129,18 @@ export function SignUpForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Show validation errors */}
+      {validationErrors.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-sm font-medium text-red-800 mb-2">Please fix the following errors:</h3>
+          <ul className="text-sm text-red-700 space-y-1">
+            {validationErrors.map((error, index) => (
+              <li key={index}>• {error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>

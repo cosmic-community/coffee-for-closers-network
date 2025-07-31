@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'fallback-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development'
 
 export interface JWTPayload {
   userId: string
@@ -21,23 +21,17 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
     return decoded
   } catch (error) {
-    console.error('JWT verification failed:', error)
+    console.error('JWT verification error:', error)
     return null
   }
 }
 
-export async function generateResetToken(email: string): Promise<string> {
-  return signJWT({
-    userId: '',
-    email,
-    role: 'reset',
-  })
-}
-
-export async function generateVerificationToken(userId: string, email: string): Promise<string> {
-  return signJWT({
-    userId,
-    email,
-    role: 'verification',
-  })
+export function decodeJWT(token: string): JWTPayload | null {
+  try {
+    const decoded = jwt.decode(token) as JWTPayload
+    return decoded
+  } catch (error) {
+    console.error('JWT decode error:', error)
+    return null
+  }
 }

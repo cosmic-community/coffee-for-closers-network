@@ -3,6 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2, Mail, User, Building } from 'lucide-react'
+import { 
+  validateEmail, 
+  validateName, 
+  validateJobTitle, 
+  validateCompany 
+} from '@/lib/validations/auth'
 import toast from 'react-hot-toast'
 
 interface QuickSignupFormData {
@@ -23,28 +29,66 @@ export function QuickSignupForm() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const router = useRouter()
+
+  const validateField = (name: string, value: string) => {
+    let validation = { isValid: true, errors: [] }
+    
+    switch (name) {
+      case 'fullName':
+        validation = validateName(value)
+        break
+      case 'email':
+        validation = validateEmail(value)
+        break
+      case 'jobTitle':
+        validation = validateJobTitle(value)
+        break
+      case 'company':
+        validation = validateCompany(value)
+        break
+      case 'password':
+        if (!value) {
+          validation = { isValid: false, errors: ['Password is required'] }
+        } else if (value.length < 8) {
+          validation = { isValid: false, errors: ['Password must be at least 8 characters'] }
+        }
+        break
+    }
+    
+    setFieldErrors(prev => ({
+      ...prev,
+      [name]: validation.isValid ? '' : validation.errors[0]
+    }))
+    
+    return validation.isValid
+  }
+
+  const handleFieldChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: '' }))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Validate required fields
-      if (!formData.fullName || !formData.email || !formData.password || !formData.jobTitle || !formData.company) {
-        toast.error('Please fill in all fields')
-        return
-      }
+      // Validate all fields
+      const validations = [
+        validateField('fullName', formData.fullName),
+        validateField('email', formData.email),
+        validateField('password', formData.password),
+        validateField('jobTitle', formData.jobTitle),
+        validateField('company', formData.company)
+      ]
 
-      // Basic email validation
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        toast.error('Please enter a valid email address')
-        return
-      }
-
-      // Basic password validation
-      if (formData.password.length < 8) {
-        toast.error('Password must be at least 8 characters')
+      if (!validations.every(Boolean)) {
+        toast.error('Please fix the errors below')
         return
       }
 
@@ -89,12 +133,16 @@ export function QuickSignupForm() {
             id="fullName"
             type="text"
             value={formData.fullName}
-            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+            onChange={(e) => handleFieldChange('fullName', e.target.value)}
+            onBlur={() => validateField('fullName', formData.fullName)}
             required
-            className="input pl-10"
+            className={`input pl-10 ${fieldErrors.fullName ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Enter your full name"
           />
         </div>
+        {fieldErrors.fullName && (
+          <p className="mt-1 text-xs text-red-600">{fieldErrors.fullName}</p>
+        )}
       </div>
 
       <div>
@@ -107,12 +155,16 @@ export function QuickSignupForm() {
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            onChange={(e) => handleFieldChange('email', e.target.value)}
+            onBlur={() => validateField('email', formData.email)}
             required
-            className="input pl-10"
+            className={`input pl-10 ${fieldErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Enter your work email"
           />
         </div>
+        {fieldErrors.email && (
+          <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -124,11 +176,15 @@ export function QuickSignupForm() {
             id="jobTitle"
             type="text"
             value={formData.jobTitle}
-            onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
+            onChange={(e) => handleFieldChange('jobTitle', e.target.value)}
+            onBlur={() => validateField('jobTitle', formData.jobTitle)}
             required
-            className="input"
+            className={`input ${fieldErrors.jobTitle ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Account Executive"
           />
+          {fieldErrors.jobTitle && (
+            <p className="mt-1 text-xs text-red-600">{fieldErrors.jobTitle}</p>
+          )}
         </div>
 
         <div>
@@ -141,12 +197,16 @@ export function QuickSignupForm() {
               id="company"
               type="text"
               value={formData.company}
-              onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+              onChange={(e) => handleFieldChange('company', e.target.value)}
+              onBlur={() => validateField('company', formData.company)}
               required
-              className="input pl-10"
+              className={`input pl-10 ${fieldErrors.company ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
               placeholder="Your company"
             />
           </div>
+          {fieldErrors.company && (
+            <p className="mt-1 text-xs text-red-600">{fieldErrors.company}</p>
+          )}
         </div>
       </div>
 
@@ -159,9 +219,10 @@ export function QuickSignupForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
-            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+            onChange={(e) => handleFieldChange('password', e.target.value)}
+            onBlur={() => validateField('password', formData.password)}
             required
-            className="input pr-10"
+            className={`input pr-10 ${fieldErrors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Create a secure password"
           />
           <button
@@ -176,9 +237,13 @@ export function QuickSignupForm() {
             )}
           </button>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          Must be at least 8 characters
-        </p>
+        {fieldErrors.password ? (
+          <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>
+        ) : (
+          <p className="mt-1 text-xs text-gray-500">
+            Must be at least 8 characters
+          </p>
+        )}
       </div>
 
       <button
