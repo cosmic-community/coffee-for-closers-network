@@ -142,8 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
-      const user = await fetchUser()
-      setUser(user)
+      const fetchedUser = await fetchUser()
+      setUser(fetchedUser)
       setIsLoading(false)
     }
 
