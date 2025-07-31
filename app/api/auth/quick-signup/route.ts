@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
-import { CreateUserData } from '@/types/auth'
+import { CreateUserData } from '@/types'
 import { signJWT } from '@/lib/jwt'
 
 export async function POST(request: NextRequest) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     // Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0]
     
-    // Prepare user data with minimal required fields
+    // Prepare user data with explicit string values to fix TypeScript errors
     const userData: CreateUserData = {
       title: fullName,
       slug: userSlug,
@@ -68,12 +68,12 @@ export async function POST(request: NextRequest) {
         role: 'member',
         job_title: jobTitle,
         company: company,
-        bio: '',
+        bio: '', // Explicit empty string instead of undefined
         timezone: 'EST', // Default timezone
         availability: ['Morning'], // Default availability
         years_experience: '0-2', // Default experience
         industry_focus: [],
-        linkedin_url: '',
+        linkedin_url: '', // Explicit empty string instead of undefined
         twitter_url: '',
         website_url: '',
         active_member: true,
@@ -88,18 +88,15 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Generate welcome token for onboarding
-    const welcomeToken = await signJWT(
-      { 
-        userId: newUser.id, 
-        email: email.toLowerCase(),
-        type: 'onboarding'
-      }
-    )
+    const welcomeToken = await signJWT({
+      userId: newUser.id,
+      email: email.toLowerCase()
+    })
 
     // Return success with minimal user data
     // Fix TypeScript errors by providing safe fallbacks for potentially undefined values
-    const userEmail = newUser.metadata?.email as string || email
-    const userName = newUser.metadata?.full_name as string || fullName
+    const userEmail = newUser.metadata?.email || email
+    const userName = newUser.metadata?.full_name || fullName
     
     return NextResponse.json({
       success: true,
