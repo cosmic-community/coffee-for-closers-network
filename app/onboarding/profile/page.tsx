@@ -19,7 +19,8 @@ export default function ProfilePage() {
     }
     
     // If user hasn't completed welcome step, redirect back
-    if (!user?.metadata?.onboarding_step || user.metadata.onboarding_step < 1) {
+    // Use optional chaining to safely access potentially undefined properties
+    if (!user?.metadata?.onboarding_step || (user.metadata.onboarding_step ?? 0) < 1) {
       router.push('/onboarding/welcome')
       return
     }

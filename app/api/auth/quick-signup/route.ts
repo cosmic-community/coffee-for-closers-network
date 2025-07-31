@@ -117,9 +117,9 @@ export async function POST(request: NextRequest) {
       role: 'member'
     })
 
-    // Return success with minimal user data
-    const userEmail = newUser.metadata?.email || email
-    const userName = newUser.metadata?.full_name || fullName
+    // Return success with minimal user data - handle potentially undefined metadata safely
+    const userEmail = newUser.metadata?.email ?? email
+    const userName = newUser.metadata?.full_name ?? fullName
     
     return NextResponse.json({
       success: true,

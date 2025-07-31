@@ -55,11 +55,15 @@ export function ProfileSetup() {
   }
 
   // Extract string values from role metadata safely
-  const getStringValue = (value: string | { key: string; value: string }): string => {
+  const getStringValue = (value: string | { key: string; value: string } | undefined): string => {
+    if (!value) return ''
     if (typeof value === 'string') {
       return value
     }
-    return value?.value || ''
+    if (typeof value === 'object' && 'value' in value) {
+      return value.value
+    }
+    return ''
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -158,7 +158,7 @@ export class UserJourney {
     const lastStep = this.journey[this.journey.length - 1]
 
     await trackSignupStep('user_journey', {
-      source: this.journey,
+      source: JSON.stringify(this.journey),
       step: `${this.journey.length}_steps`,
       company: firstStep?.properties?.company,
       jobTitle: lastStep?.timestamp && firstStep?.timestamp ? 

@@ -168,16 +168,18 @@ export async function POST(request: NextRequest) {
         active_member: true,
         join_date: currentDate,
         last_active: currentDate,
-        onboarding_step: 0
+        onboarding_step: 0,
+        onboarding_completed: false,
+        profile_completed: false
       }
     }
 
     // Create user in Cosmic CMS
     const newUser = await createUser(userData)
 
-    // Return success (don't include sensitive data)
-    const userEmail = newUser.metadata?.email || email
-    const userName = newUser.metadata?.full_name || fullName
+    // Return success (don't include sensitive data) - handle potentially undefined metadata safely
+    const userEmail = newUser.metadata?.email ?? email
+    const userName = newUser.metadata?.full_name ?? fullName
     
     return NextResponse.json({
       success: true,
