@@ -108,13 +108,9 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Return success (don't include sensitive data)
-    // Fix TypeScript errors by providing explicit fallback values and proper type handling
-    const userEmail: string = (newUser.metadata?.email && typeof newUser.metadata.email === 'string') 
-      ? newUser.metadata.email 
-      : email
-    const userName: string = (newUser.metadata?.full_name && typeof newUser.metadata.full_name === 'string') 
-      ? newUser.metadata.full_name 
-      : fullName
+    // Fix TypeScript errors by ensuring values are strings with proper fallbacks
+    const userEmail: string = newUser.metadata?.email || email
+    const userName: string = newUser.metadata?.full_name || fullName
     
     return NextResponse.json({
       success: true,
