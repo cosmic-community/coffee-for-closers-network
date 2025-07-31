@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2, Mail, User, Building } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { 
   validateEmail, 
   validateName, 
   validateJobTitle, 
   validateCompany 
 } from '@/lib/validations/auth'
+import { trackSignupStep } from '@/lib/analytics'
 import toast from 'react-hot-toast'
 
 interface QuickSignupFormData {
@@ -19,7 +21,13 @@ interface QuickSignupFormData {
   company: string
 }
 
-export function QuickSignupForm() {
+interface QuickSignupFormProps {
+  onSuccess: (data: QuickSignupFormData, userId: string) => void
+  isLoading: boolean
+  setIsLoading: (loading: boolean) => void
+}
+
+export function QuickSignupForm({ onSuccess, isLoading, setIsLoading }: QuickSignupFormProps) {
   const [formData, setFormData] = useState<QuickSignupFormData>({
     fullName: '',
     email: '',
@@ -28,9 +36,8 @@ export function QuickSignupForm() {
     company: ''
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const router = useRouter()
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   const validateField = (name: string, value: string) => {
     let validation = { isValid: true, errors: [] }
@@ -67,10 +74,16 @@ export function QuickSignupForm() {
 
   const handleFieldChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }))
-    // Clear error when user starts typing
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: '' }))
+    
+    // Real-time validation for touched fields
+    if (touched[name]) {
+      validateField(name, value)
     }
+  }
+
+  const handleFieldBlur = (name: string) => {
+    setTouched(prev => ({ ...prev, [name]: true }))
+    validateField(name, formData[name as keyof QuickSignupFormData])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,6 +91,13 @@ export function QuickSignupForm() {
     setIsLoading(true)
 
     try {
+      // Track form submission
+      await trackSignupStep('signup_form_submitted', {
+        email: formData.email,
+        company: formData.company,
+        jobTitle: formData.jobTitle
+      })
+
       // Validate all fields
       const validations = [
         validateField('fullName', formData.fullName),
@@ -107,10 +127,24 @@ export function QuickSignupForm() {
         throw new Error(data.error || 'Failed to create account')
       }
 
-      toast.success('Account created! Welcome to the network!')
-      router.push('/onboarding/welcome')
+      // Track successful signup
+      await trackSignupStep('signup_completed', {
+        userId: data.user.id,
+        email: formData.email,
+        company: formData.company,
+        jobTitle: formData.jobTitle
+      })
+
+      onSuccess(formData, data.user.id)
     } catch (error) {
       console.error('Quick signup error:', error)
+      
+      // Track signup error
+      await trackSignupStep('signup_error', {
+        email: formData.email,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      
       if (error instanceof Error) {
         toast.error(error.message)
       } else {
@@ -122,7 +156,13 @@ export function QuickSignupForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className="space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div>
         <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Full Name
@@ -134,14 +174,20 @@ export function QuickSignupForm() {
             type="text"
             value={formData.fullName}
             onChange={(e) => handleFieldChange('fullName', e.target.value)}
-            onBlur={() => validateField('fullName', formData.fullName)}
+            onBlur={() => handleFieldBlur('fullName')}
             required
             className={`input pl-10 ${fieldErrors.fullName ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Enter your full name"
           />
         </div>
         {fieldErrors.fullName && (
-          <p className="mt-1 text-xs text-red-600">{fieldErrors.fullName}</p>
+          <motion.p 
+            className="mt-1 text-xs text-red-600"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {fieldErrors.fullName}
+          </motion.p>
         )}
       </div>
 
@@ -156,14 +202,20 @@ export function QuickSignupForm() {
             type="email"
             value={formData.email}
             onChange={(e) => handleFieldChange('email', e.target.value)}
-            onBlur={() => validateField('email', formData.email)}
+            onBlur={() => handleFieldBlur('email')}
             required
             className={`input pl-10 ${fieldErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Enter your work email"
           />
         </div>
         {fieldErrors.email && (
-          <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+          <motion.p 
+            className="mt-1 text-xs text-red-600"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {fieldErrors.email}
+          </motion.p>
         )}
       </div>
 
@@ -177,13 +229,19 @@ export function QuickSignupForm() {
             type="text"
             value={formData.jobTitle}
             onChange={(e) => handleFieldChange('jobTitle', e.target.value)}
-            onBlur={() => validateField('jobTitle', formData.jobTitle)}
+            onBlur={() => handleFieldBlur('jobTitle')}
             required
             className={`input ${fieldErrors.jobTitle ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Account Executive"
           />
           {fieldErrors.jobTitle && (
-            <p className="mt-1 text-xs text-red-600">{fieldErrors.jobTitle}</p>
+            <motion.p 
+              className="mt-1 text-xs text-red-600"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {fieldErrors.jobTitle}
+            </motion.p>
           )}
         </div>
 
@@ -198,14 +256,20 @@ export function QuickSignupForm() {
               type="text"
               value={formData.company}
               onChange={(e) => handleFieldChange('company', e.target.value)}
-              onBlur={() => validateField('company', formData.company)}
+              onBlur={() => handleFieldBlur('company')}
               required
               className={`input pl-10 ${fieldErrors.company ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
               placeholder="Your company"
             />
           </div>
           {fieldErrors.company && (
-            <p className="mt-1 text-xs text-red-600">{fieldErrors.company}</p>
+            <motion.p 
+              className="mt-1 text-xs text-red-600"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {fieldErrors.company}
+            </motion.p>
           )}
         </div>
       </div>
@@ -220,7 +284,7 @@ export function QuickSignupForm() {
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={(e) => handleFieldChange('password', e.target.value)}
-            onBlur={() => validateField('password', formData.password)}
+            onBlur={() => handleFieldBlur('password')}
             required
             className={`input pr-10 ${fieldErrors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Create a secure password"
@@ -238,7 +302,13 @@ export function QuickSignupForm() {
           </button>
         </div>
         {fieldErrors.password ? (
-          <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>
+          <motion.p 
+            className="mt-1 text-xs text-red-600"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {fieldErrors.password}
+          </motion.p>
         ) : (
           <p className="mt-1 text-xs text-gray-500">
             Must be at least 8 characters
@@ -246,10 +316,12 @@ export function QuickSignupForm() {
         )}
       </div>
 
-      <button
+      <motion.button
         type="submit"
         disabled={isLoading}
         className="btn btn-primary w-full"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
         {isLoading ? (
           <>
@@ -259,7 +331,7 @@ export function QuickSignupForm() {
         ) : (
           'Join the Network'
         )}
-      </button>
-    </form>
+      </motion.button>
+    </motion.form>
   )
 }

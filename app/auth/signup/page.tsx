@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
-import { QuickSignupForm } from '@/components/auth/quick-signup-form'
+import { SignupFlow } from '@/components/auth/signup-flow'
 import { SocialSignup } from '@/components/auth/social-signup'
 import { SignupBenefits } from '@/components/auth/signup-benefits'
 import { Metadata } from 'next'
@@ -21,37 +21,12 @@ export default async function SignUpPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex">
-        {/* Left side - Form */}
+        {/* Left side - Signup Flow */}
         <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Join the Network
-              </h1>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Connect with fellow sales professionals in just 2 minutes
-              </p>
-            </div>
+          <div className="max-w-md w-full">
+            <SignupFlow />
             
-            {/* Social Signup */}
-            <SocialSignup />
-            
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">
-                  Or with email
-                </span>
-              </div>
-            </div>
-            
-            {/* Quick Signup Form */}
-            <QuickSignupForm />
-            
-            <div className="text-center">
+            <div className="mt-8 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
                 <a href="/auth/signin" className="font-medium text-primary-600 hover:text-primary-500">
