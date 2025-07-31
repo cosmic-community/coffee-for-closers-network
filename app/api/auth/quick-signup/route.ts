@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
-import { CreateUserData } from '@/types'
+import { CreateUserData } from '@/types/auth'
 import { signJWT } from '@/lib/jwt'
 
 export async function POST(request: NextRequest) {
@@ -93,13 +93,13 @@ export async function POST(request: NextRequest) {
         userId: newUser.id, 
         email: email.toLowerCase(),
         type: 'onboarding'
-      },
-      '7d' // Valid for 7 days
+      }
     )
 
     // Return success with minimal user data
-    const userEmail = (newUser.metadata?.email as string | undefined) ?? email
-    const userName = (newUser.metadata?.full_name as string | undefined) ?? fullName
+    // Fix TypeScript errors by providing safe fallbacks for potentially undefined values
+    const userEmail = newUser.metadata?.email as string || email
+    const userName = newUser.metadata?.full_name as string || fullName
     
     return NextResponse.json({
       success: true,

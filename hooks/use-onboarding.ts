@@ -49,7 +49,9 @@ export function useOnboarding() {
       const result = await response.json()
       
       // Refresh user data to get updated onboarding status
-      await refreshUser()
+      if (refreshUser) {
+        await refreshUser()
+      }
       
       return result
     } catch (error) {

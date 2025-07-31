@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword, validatePassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
-import { CreateUserData } from '@/types'
+import { CreateUserData } from '@/types/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
 
     // Return success (don't include sensitive data)
     // Fix TypeScript errors by ensuring values are always strings with proper fallbacks
-    const userEmail = (newUser.metadata?.email as string | undefined) ?? email
-    const userName = (newUser.metadata?.full_name as string | undefined) ?? fullName
+    const userEmail = newUser.metadata?.email as string || email
+    const userName = newUser.metadata?.full_name as string || fullName
     
     return NextResponse.json({
       success: true,
