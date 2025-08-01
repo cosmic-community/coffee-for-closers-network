@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { getAllUsers, createUser } from '@/lib/cosmic'
 import { hashPassword, validatePassword } from '@/lib/password'
-import { CreateUserData } from '@/types'
+import { CreateUserData } from '@/types/user'
 
 export async function GET(request: NextRequest) {
   try {

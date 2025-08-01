@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword, validatePassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
-import { CreateUserData } from '@/types'
+import { CreateUserData } from '@/types/user'
 import { 
   validateEmail, 
   validateName, 
@@ -12,7 +12,7 @@ import {
   validateLinkedInUrl,
   validateTwitterUrl,
   validateAvailability
-} from '@/lib/validations/auth'
+} from '@/lib/validations/user'
 
 export async function POST(request: NextRequest) {
   try {

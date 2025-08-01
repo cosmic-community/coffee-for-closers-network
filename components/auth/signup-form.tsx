@@ -9,7 +9,7 @@ import {
   getExperienceLevels, 
   getIndustryOptions 
 } from '@/lib/utils'
-import { validateSignupForm } from '@/lib/validations/auth'
+import { validateSignupForm } from '@/lib/validations/user'
 import toast from 'react-hot-toast'
 
 interface SignUpFormData {
