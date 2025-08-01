@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken'
 import { JWTPayload } from '@/types'
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'fallback-secret'
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET or NEXTAUTH_SECRET environment variable is required')
+}
 
 export async function signJWT(
   payload: Omit<JWTPayload, 'exp' | 'iat'>,

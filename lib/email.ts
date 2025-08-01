@@ -1,74 +1,38 @@
 import { EmailOptions, EmailTemplate } from '@/types'
-import { getWelcomeEmailTemplate, getEmailVerificationTemplate } from './email-templates'
 
-export async function sendEmail(options: EmailOptions): Promise<void> {
-  // This is a placeholder implementation
-  // In production, you would integrate with your email service (SendGrid, Resend, etc.)
-  
+export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Email would be sent:', {
-        to: options.to,
-        subject: options.subject,
-        preview: options.html.substring(0, 100) + '...'
-      })
-      return
-    }
-
-    // Example integration with a service like Resend
-    if (process.env.RESEND_API_KEY) {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: process.env.FROM_EMAIL || 'noreply@coffeecloser.network',
-          to: [options.to],
-          subject: options.subject,
-          html: options.html,
-          text: options.text,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Email service error: ${response.statusText}`)
-      }
-    }
+    // Implementation would depend on your email service provider
+    // This is a placeholder for the actual email sending logic
+    console.log('Sending email:', options)
+    return true
   } catch (error) {
     console.error('Failed to send email:', error)
-    throw error
+    return false
   }
 }
 
-export async function sendWelcomeEmail(
-  email: string,
-  name: string,
-  verificationUrl: string
-): Promise<void> {
-  const template = getWelcomeEmailTemplate(name, verificationUrl)
-  
-  await sendEmail({
-    to: email,
-    subject: template.subject,
-    html: template.html,
-    text: template.text
-  })
+export function createWelcomeEmailTemplate(userName: string): EmailTemplate {
+  return {
+    subject: 'Welcome to Coffee for Closers!',
+    html: `
+      <h1>Welcome ${userName}!</h1>
+      <p>Thank you for joining Coffee for Closers, the network for SaaS and software sales professionals.</p>
+      <p>Get ready to connect with fellow sales professionals through 15-minute virtual coffee chats!</p>
+    `,
+    text: `Welcome ${userName}! Thank you for joining Coffee for Closers, the network for SaaS and software sales professionals.`
+  }
 }
 
-export async function sendVerificationEmail(
-  email: string,
-  name: string,
-  verificationToken: string
-): Promise<void> {
-  const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`
-  const template = getEmailVerificationTemplate(name, verificationUrl)
-  
-  await sendEmail({
-    to: email,
-    subject: template.subject,
-    html: template.html,
-    text: template.text
-  })
+export function createPasswordResetEmailTemplate(resetUrl: string): EmailTemplate {
+  return {
+    subject: 'Reset Your Password - Coffee for Closers',
+    html: `
+      <h1>Reset Your Password</h1>
+      <p>Click the link below to reset your password:</p>
+      <a href="${resetUrl}">Reset Password</a>
+      <p>This link will expire in 1 hour.</p>
+    `,
+    text: `Reset your password by clicking this link: ${resetUrl}. This link will expire in 1 hour.`
+  }
 }

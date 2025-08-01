@@ -140,8 +140,8 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
 
     // Create user slug from email with safe fallback
-    const emailPrefix = email.split('@')[0]
-    const userSlug = emailPrefix ? emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') : `user-${Date.now()}`
+    const emailPrefix = email.split('@')[0] || 'user'
+    const userSlug = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') || `user-${Date.now()}`
     
     // Get current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split('T')[0]
@@ -178,8 +178,8 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Return success (don't include sensitive data) - handle potentially undefined metadata safely
-    const userEmail = newUser.metadata?.email ?? email
-    const userName = newUser.metadata?.full_name ?? fullName
+    const userEmail = newUser.metadata?.email || email
+    const userName = newUser.metadata?.full_name || fullName
     
     return NextResponse.json({
       success: true,

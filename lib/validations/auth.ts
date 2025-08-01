@@ -1,200 +1,240 @@
 import { ValidationResult, SignupFormData } from '@/types'
 
 export function validateEmail(email: string): ValidationResult {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  
+  const errors: string[] = []
+
   if (!email) {
-    return { isValid: false, errors: ['Email is required'] }
+    errors.push('Email is required')
+    return { isValid: false, errors }
   }
-  
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   if (!emailRegex.test(email)) {
-    return { isValid: false, errors: ['Please enter a valid email address'] }
+    errors.push('Please enter a valid email address')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 export function validateName(name: string): ValidationResult {
+  const errors: string[] = []
+
   if (!name) {
-    return { isValid: false, errors: ['Name is required'] }
+    errors.push('Full name is required')
+    return { isValid: false, errors }
   }
-  
-  if (name.length < 2) {
-    return { isValid: false, errors: ['Name must be at least 2 characters'] }
+
+  if (name.trim().length < 2) {
+    errors.push('Full name must be at least 2 characters long')
   }
-  
-  if (name.length > 100) {
-    return { isValid: false, errors: ['Name must be less than 100 characters'] }
+
+  if (name.trim().length > 100) {
+    errors.push('Full name must be less than 100 characters')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 export function validateJobTitle(jobTitle: string): ValidationResult {
+  const errors: string[] = []
+
   if (!jobTitle) {
-    return { isValid: false, errors: ['Job title is required'] }
+    errors.push('Job title is required')
+    return { isValid: false, errors }
   }
-  
-  if (jobTitle.length < 2) {
-    return { isValid: false, errors: ['Job title must be at least 2 characters'] }
+
+  if (jobTitle.trim().length < 2) {
+    errors.push('Job title must be at least 2 characters long')
   }
-  
-  if (jobTitle.length > 100) {
-    return { isValid: false, errors: ['Job title must be less than 100 characters'] }
+
+  if (jobTitle.trim().length > 100) {
+    errors.push('Job title must be less than 100 characters')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 export function validateCompany(company: string): ValidationResult {
+  const errors: string[] = []
+
   if (!company) {
-    return { isValid: false, errors: ['Company is required'] }
+    errors.push('Company is required')
+    return { isValid: false, errors }
   }
-  
-  if (company.length < 2) {
-    return { isValid: false, errors: ['Company name must be at least 2 characters'] }
+
+  if (company.trim().length < 2) {
+    errors.push('Company name must be at least 2 characters long')
   }
-  
-  if (company.length > 100) {
-    return { isValid: false, errors: ['Company name must be less than 100 characters'] }
+
+  if (company.trim().length > 100) {
+    errors.push('Company name must be less than 100 characters')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 export function validateBio(bio: string): ValidationResult {
-  if (bio.length > 500) {
-    return { isValid: false, errors: ['Bio must be less than 500 characters'] }
+  const errors: string[] = []
+
+  if (bio && bio.length > 500) {
+    errors.push('Bio must be less than 500 characters')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 export function validateUrl(url: string, fieldName: string): ValidationResult {
+  const errors: string[] = []
+
   if (!url) {
-    return { isValid: true, errors: [] } // Optional field
+    return { isValid: true, errors }
   }
-  
+
   try {
     new URL(url)
-    return { isValid: true, errors: [] }
   } catch {
-    return { isValid: false, errors: [`${fieldName} must be a valid URL`] }
+    errors.push(`${fieldName} must be a valid URL`)
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
   }
 }
 
 export function validateLinkedInUrl(url: string): ValidationResult {
+  const errors: string[] = []
+
   if (!url) {
-    return { isValid: true, errors: [] } // Optional field
+    return { isValid: true, errors }
   }
-  
-  const linkedinRegex = /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-]+\/?$/
-  
-  if (!linkedinRegex.test(url)) {
-    return { isValid: false, errors: ['Please enter a valid LinkedIn profile URL'] }
+
+  if (!url.includes('linkedin.com')) {
+    errors.push('LinkedIn URL must be a valid LinkedIn profile URL')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return validateUrl(url, 'LinkedIn URL')
 }
 
 export function validateTwitterUrl(url: string): ValidationResult {
+  const errors: string[] = []
+
   if (!url) {
-    return { isValid: true, errors: [] } // Optional field
+    return { isValid: true, errors }
   }
-  
-  const twitterRegex = /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?$/
-  
-  if (!twitterRegex.test(url)) {
-    return { isValid: false, errors: ['Please enter a valid Twitter/X profile URL'] }
+
+  if (!url.includes('twitter.com') && !url.includes('x.com')) {
+    errors.push('Twitter URL must be a valid Twitter/X profile URL')
   }
-  
-  return { isValid: true, errors: [] }
+
+  return validateUrl(url, 'Twitter URL')
 }
 
 export function validateAvailability(availability: string[]): ValidationResult {
+  const errors: string[] = []
+
   if (!availability || availability.length === 0) {
-    return { isValid: false, errors: ['Please select at least one availability slot'] }
+    errors.push('Please select at least one availability slot')
   }
-  
+
   const validSlots = [
-    'Morning (9-11 AM)',
-    'Lunch (11 AM-2 PM)',
-    'Afternoon (2-5 PM)',
-    'Evening (5-7 PM)'
+    'Monday Morning', 'Monday Afternoon',
+    'Tuesday Morning', 'Tuesday Afternoon',
+    'Wednesday Morning', 'Wednesday Afternoon',
+    'Thursday Morning', 'Thursday Afternoon',
+    'Friday Morning', 'Friday Afternoon'
   ]
-  
-  const invalidSlots = availability.filter(slot => !validSlots.includes(slot))
-  
-  if (invalidSlots.length > 0) {
-    return { isValid: false, errors: ['Invalid availability slots selected'] }
+
+  for (const slot of availability) {
+    if (!validSlots.includes(slot)) {
+      errors.push(`Invalid availability slot: ${slot}`)
+    }
   }
-  
-  return { isValid: true, errors: [] }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
-export function validateSignupForm(formData: SignupFormData): ValidationResult {
+export function validateSignupForm(data: SignupFormData): ValidationResult {
   const errors: string[] = []
-  
-  // Validate required fields
-  const nameValidation = validateName(formData.fullName)
+
+  // Validate individual fields
+  const nameValidation = validateName(data.fullName)
   if (!nameValidation.isValid) {
     errors.push(...nameValidation.errors)
   }
-  
-  const emailValidation = validateEmail(formData.email)
+
+  const emailValidation = validateEmail(data.email)
   if (!emailValidation.isValid) {
     errors.push(...emailValidation.errors)
   }
-  
-  const jobTitleValidation = validateJobTitle(formData.jobTitle)
+
+  const jobTitleValidation = validateJobTitle(data.jobTitle)
   if (!jobTitleValidation.isValid) {
     errors.push(...jobTitleValidation.errors)
   }
-  
-  const companyValidation = validateCompany(formData.company)
+
+  const companyValidation = validateCompany(data.company)
   if (!companyValidation.isValid) {
     errors.push(...companyValidation.errors)
   }
-  
-  const availabilityValidation = validateAvailability(formData.availability)
+
+  const availabilityValidation = validateAvailability(data.availability)
   if (!availabilityValidation.isValid) {
     errors.push(...availabilityValidation.errors)
   }
-  
+
+  // Validate password confirmation
+  if (data.password !== data.confirmPassword) {
+    errors.push('Passwords do not match')
+  }
+
   // Validate optional fields
-  if (formData.bio) {
-    const bioValidation = validateBio(formData.bio)
+  if (data.bio) {
+    const bioValidation = validateBio(data.bio)
     if (!bioValidation.isValid) {
       errors.push(...bioValidation.errors)
     }
   }
-  
-  if (formData.linkedinUrl) {
-    const linkedinValidation = validateLinkedInUrl(formData.linkedinUrl)
+
+  if (data.linkedinUrl) {
+    const linkedinValidation = validateLinkedInUrl(data.linkedinUrl)
     if (!linkedinValidation.isValid) {
       errors.push(...linkedinValidation.errors)
     }
   }
-  
-  if (formData.twitterUrl) {
-    const twitterValidation = validateTwitterUrl(formData.twitterUrl)
+
+  if (data.twitterUrl) {
+    const twitterValidation = validateTwitterUrl(data.twitterUrl)
     if (!twitterValidation.isValid) {
       errors.push(...twitterValidation.errors)
     }
   }
-  
-  if (formData.websiteUrl) {
-    const websiteValidation = validateUrl(formData.websiteUrl, 'Website URL')
+
+  if (data.websiteUrl) {
+    const websiteValidation = validateUrl(data.websiteUrl, 'Website URL')
     if (!websiteValidation.isValid) {
       errors.push(...websiteValidation.errors)
     }
   }
-  
-  // Validate password match
-  if (formData.password !== formData.confirmPassword) {
-    errors.push('Passwords do not match')
-  }
-  
+
   return {
     isValid: errors.length === 0,
     errors

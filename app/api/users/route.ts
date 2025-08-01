@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
 
     // Create user slug
-    const emailPrefix = email.split('@')[0]
-    const userSlug = emailPrefix ? emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'user'
+    const emailPrefix = email.split('@')[0] || 'user'
+    const userSlug = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'user'
 
     const userData: CreateUserData = {
       title: fullName,
@@ -141,9 +141,9 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         id: newUser.id,
-        email: newUser.metadata.email,
-        name: newUser.metadata.full_name,
-        role: newUser.metadata.role
+        email: newUser.metadata.email || email,
+        name: newUser.metadata.full_name || fullName,
+        role: newUser.metadata.role || role
       }
     })
 

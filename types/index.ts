@@ -29,8 +29,8 @@ export interface UserMetadata {
   years_experience: string | { key: string; value: string }
   industry_focus: string[]
   linkedin_url: string
-  twitter_url: string
-  website_url: string
+  twitter_url: string | null
+  website_url: string | null
   active_member: boolean
   join_date: string
   last_active: string
@@ -203,3 +203,6 @@ export interface Chat extends CosmicObject {
     topics: string[]
   }
 }
+
+// Re-export for backward compatibility
+export type { AuthUser as User } from './index'
