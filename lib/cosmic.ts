@@ -34,8 +34,8 @@ export async function getUserByEmail(email: string): Promise<User | null> {
       .depth(1)
 
     return objects.length > 0 ? objects[0] as User : null
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return null
     }
     throw error
@@ -53,8 +53,8 @@ export async function getUserById(id: string): Promise<User | null> {
       .depth(1)
 
     return object as User
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return null
     }
     throw error
@@ -103,8 +103,8 @@ export async function getAllUsers(): Promise<User[]> {
       .depth(1)
 
     return objects as User[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -121,8 +121,8 @@ export async function getAllPosts(): Promise<Post[]> {
       .sort('created_at')
 
     return objects as Post[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -142,8 +142,8 @@ export async function getFeaturedPosts(): Promise<Post[]> {
       .limit(6)
 
     return objects as Post[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -160,8 +160,8 @@ export async function getAllBlogArticles(): Promise<BlogArticle[]> {
       .sort('metadata.published_date')
 
     return objects as BlogArticle[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -181,8 +181,8 @@ export async function getFeaturedBlogArticles(): Promise<BlogArticle[]> {
       .limit(6)
 
     return objects as BlogArticle[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -200,8 +200,8 @@ export async function getBlogArticleBySlug(slug: string): Promise<BlogArticle | 
       .depth(1)
 
     return object as BlogArticle
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return null
     }
     throw error
@@ -218,8 +218,8 @@ export async function getAllCoffeeChats(): Promise<CoffeeChat[]> {
       .sort('metadata.scheduled_date')
 
     return objects as CoffeeChat[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -245,8 +245,8 @@ export async function getUserChats(userId: string): Promise<CoffeeChat[]> {
       .sort('metadata.scheduled_date')
 
     return objects as CoffeeChat[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -266,8 +266,8 @@ export async function getActiveCTAs(): Promise<CallToAction[]> {
       .sort('metadata.priority_order')
 
     return objects as CallToAction[]
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return []
     }
     throw error
@@ -288,8 +288,8 @@ export async function getCallToActionByType(ctaType: string): Promise<CallToActi
       .limit(1)
 
     return objects.length > 0 ? objects[0] as CallToAction : null
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return null
     }
     throw error
@@ -305,8 +305,8 @@ export async function getAdminSettings(): Promise<AdminSettings | null> {
       .depth(1)
 
     return object as AdminSettings
-  } catch (error) {
-    if ((error as any)?.status === 404) {
+  } catch (error: any) {
+    if (error?.status === 404) {
       return null
     }
     throw error

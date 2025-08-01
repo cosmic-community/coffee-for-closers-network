@@ -1,55 +1,23 @@
-import { CoffeeChat } from '@/types'
-
-export interface MatchingStats {
-  totalMatches: number
-  completedMatches: number
-  cancelledMatches: number
-  upcomingMatches: number
-  averageRating: number
-}
+import { CoffeeChat, MatchingStats } from '@/types'
 
 export function getMatchingStats(chats: CoffeeChat[]): MatchingStats {
   const totalMatches = chats.length
-  const completedMatches = chats.filter(chat => 
-    typeof chat.metadata.status === 'object' 
-      ? chat.metadata.status.key === 'completed'
-      : chat.metadata.status === 'completed'
-  ).length
-  
-  const cancelledMatches = chats.filter(chat => 
-    typeof chat.metadata.status === 'object' 
-      ? chat.metadata.status.key === 'cancelled'
-      : chat.metadata.status === 'cancelled'
-  ).length
-  
+  const completedMatches = chats.filter(chat => chat.metadata?.status?.key === 'completed').length
+  const cancelledMatches = chats.filter(chat => chat.metadata?.status?.key === 'cancelled').length
   const upcomingMatches = chats.filter(chat => 
-    typeof chat.metadata.status === 'object' 
-      ? chat.metadata.status.key === 'scheduled'
-      : chat.metadata.status === 'scheduled'
+    chat.metadata?.status?.key === 'scheduled' &&
+    new Date(chat.metadata?.scheduled_date || '') > new Date()
   ).length
 
   // Calculate average rating from completed chats with ratings
-  const completedChatsWithRatings = chats.filter(chat => {
-    const isCompleted = typeof chat.metadata.status === 'object' 
-      ? chat.metadata.status.key === 'completed'
-      : chat.metadata.status === 'completed'
-    
-    const hasRating = chat.metadata.rating && (
-      typeof chat.metadata.rating === 'object' 
-        ? chat.metadata.rating.key && chat.metadata.rating.key !== ''
-        : chat.metadata.rating !== ''
-    )
-    
-    return isCompleted && hasRating
-  })
-
-  const averageRating = completedChatsWithRatings.length > 0
-    ? completedChatsWithRatings.reduce((sum, chat) => {
-        const rating = typeof chat.metadata.rating === 'object' 
-          ? parseInt(chat.metadata.rating.key) || 0
-          : parseInt(chat.metadata.rating) || 0
-        return sum + rating
-      }, 0) / completedChatsWithRatings.length
+  const ratedChats = chats.filter(chat => 
+    chat.metadata?.status?.key === 'completed' && 
+    chat.metadata?.rating?.key && 
+    !isNaN(Number(chat.metadata.rating.key))
+  )
+  
+  const averageRating = ratedChats.length > 0 
+    ? ratedChats.reduce((sum, chat) => sum + Number(chat.metadata?.rating?.key || 0), 0) / ratedChats.length
     : 0
 
   return {
@@ -61,18 +29,23 @@ export function getMatchingStats(chats: CoffeeChat[]): MatchingStats {
   }
 }
 
-export function createWeeklyMatches(users: any[]): CoffeeChat[] {
-  // Implementation for creating weekly matches
-  // This would contain the matching algorithm logic
-  return []
+export function canUserCreateMatch(userChats: CoffeeChat[], maxChatsPerWeek: number): boolean {
+  const now = new Date()
+  const weekStart = new Date(now.setDate(now.getDate() - now.getDay()))
+  weekStart.setHours(0, 0, 0, 0)
+  
+  const thisWeekChats = userChats.filter(chat => {
+    const chatDate = new Date(chat.metadata?.scheduled_date || '')
+    return chatDate >= weekStart && chat.metadata?.status?.key === 'scheduled'
+  })
+  
+  return thisWeekChats.length < maxChatsPerWeek
 }
 
-export function getMatchingAlgorithm() {
-  // Implementation for matching algorithm preferences
-  return {
-    prioritizeTimezone: true,
-    prioritizeExperience: false,
-    prioritizeIndustry: true,
-    maxChatsPerWeek: 2
-  }
+export function getAvailableMatchDays(): string[] {
+  return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+}
+
+export function generateChatTitle(participant1Name: string, participant2Name: string): string {
+  return `${participant1Name} & ${participant2Name} Coffee Chat`
 }
