@@ -23,17 +23,17 @@ export function HeroSection({ cta }: HeroSectionProps) {
       <div className="max-w-7xl mx-auto text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            {ctaData.metadata.cta_title}
+            {ctaData.metadata?.cta_title}
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white/90">
-            {ctaData.metadata.cta_description}
+            {ctaData.metadata?.cta_description}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href={ctaData.metadata.button_link}
+              href={ctaData.metadata?.button_link || "/auth/signup"}
               className="btn btn-primary btn-lg"
             >
-              {ctaData.metadata.button_text}
+              {ctaData.metadata?.button_text}
             </Link>
             <Link
               href="/blog"

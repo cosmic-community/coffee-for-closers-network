@@ -43,15 +43,15 @@ export default function BlogPage() {
     // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(article => 
-        article.metadata.category?.key === selectedCategory
+        article.metadata?.category?.key === selectedCategory
       )
     }
 
     // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(article =>
-        article.metadata.headline.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.metadata.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+        article.metadata?.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.metadata?.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 

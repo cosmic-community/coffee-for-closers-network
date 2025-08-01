@@ -21,8 +21,8 @@ export default async function HomePage() {
     getFeaturedBlogArticles()
   ])
 
-  const heroCTA = ctas.find((cta: CallToAction) => cta.metadata.cta_type.key === 'homepage-hero')
-  const secondaryCTA = ctas.find((cta: CallToAction) => cta.metadata.cta_type.key === 'homepage-secondary')
+  const heroCTA = ctas.find((cta: CallToAction) => cta.metadata.cta_type?.key === 'homepage-hero')
+  const secondaryCTA = ctas.find((cta: CallToAction) => cta.metadata.cta_type?.key === 'homepage-secondary')
 
   return (
     <div className="min-h-screen">

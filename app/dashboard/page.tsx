@@ -34,12 +34,12 @@ export default async function DashboardPage() {
   }
 
   const upcomingChats = userChats.filter((chat: CoffeeChat) => 
-    chat.metadata.status.key === 'scheduled' &&
-    new Date(chat.metadata.scheduled_date) > new Date()
+    chat.metadata?.status?.key === 'scheduled' &&
+    new Date(chat.metadata?.scheduled_date || '') > new Date()
   )
 
   const completedChats = userChats.filter((chat: CoffeeChat) => 
-    chat.metadata.status.key === 'completed'
+    chat.metadata?.status?.key === 'completed'
   )
 
   return (

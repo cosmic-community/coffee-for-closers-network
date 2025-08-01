@@ -41,7 +41,7 @@ export default async function AdminPage() {
           <div className="lg:col-span-8 space-y-8">
             <AdminStats 
               totalUsers={users.length}
-              activeUsers={users.filter((u: User) => u.metadata.active_member).length}
+              activeUsers={users.filter((u: User) => u.metadata?.active_member).length}
               totalChats={chats.length}
               totalPosts={posts.length}
               matchingStats={matchingStats}
