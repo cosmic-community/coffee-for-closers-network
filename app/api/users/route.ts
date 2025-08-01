@@ -141,9 +141,9 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         id: newUser.id,
-        email: newUser.metadata.email || email,
-        name: newUser.metadata.full_name || fullName,
-        role: newUser.metadata.role || role
+        email: newUser.metadata?.email ?? email,
+        name: newUser.metadata?.full_name ?? fullName,
+        role: newUser.metadata?.role ?? role
       }
     })
 

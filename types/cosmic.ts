@@ -4,60 +4,67 @@ export interface CosmicObject {
   slug: string
   title: string
   content?: string
-  bucket: string
-  created_at: string
-  modified_at: string
-  status: 'published' | 'draft'
+  bucket?: string
+  created_at?: string
+  modified_at?: string
+  status?: string
   thumbnail?: string
-  published_at: string
-  modified_by: string
-  created_by: string
-  type: string
+  published_at?: string
+  modified_by?: string
+  created_by?: string
+  type?: string
 }
 
-// User-related types
+// User related types
 export interface User extends CosmicObject {
-  type: 'users'
   metadata: {
     full_name: string
     email: string
-    role: {
-      key: 'member' | 'admin'
-      value: 'Member' | 'Admin'
-    }
+    password_hash: string
+    role: 'admin' | 'member' | { key: string; value: string }
     job_title: string
     company: string
-    bio?: string
+    bio: string
     profile_photo?: {
       url: string
       imgix_url: string
     }
     linkedin_url?: string
-    twitter_url?: string | null
-    website_url?: string | null
-    timezone: {
-      key: 'EST' | 'CST' | 'MST' | 'PST' | 'GMT' | 'CET'
-      value: string
-    }
+    twitter_url?: string
+    website_url?: string
+    timezone: { key: string; value: string } | string
     availability: string[]
-    years_experience: {
-      key: '0-2' | '3-5' | '6-10' | '10+'
-      value: string
-    }
+    years_experience: { key: string; value: string } | string
     industry_focus: string[]
     active_member: boolean
     join_date?: string
     last_active?: string
+    onboarding_step?: number
+    onboarding_completed?: boolean
+    profile_completed?: boolean
+    email_verified?: boolean
+    email_verification_token?: string
+    password_reset_token?: string
+    password_reset_at?: string
   }
+}
+
+export interface AuthUser {
+  id: string
+  email: string
+  name: string
+  role: 'admin' | 'member'
+  metadata?: User['metadata']
 }
 
 export interface CreateUserData {
   title: string
-  metadata: Omit<User['metadata'], 'role' | 'active_member' | 'join_date' | 'last_active'> & {
-    role?: User['metadata']['role']
-    active_member?: boolean
-    join_date?: string
-    last_active?: string
+  slug: string
+  metadata: Omit<User['metadata'], 'email_verified' | 'email_verification_token' | 'password_reset_token' | 'password_reset_at'> & {
+    email_verified?: boolean
+    email_verification_token?: string
+    password_reset_token?: string
+    password_reset_at?: string
   }
 }
 
@@ -66,23 +73,19 @@ export interface UpdateUserData {
   metadata?: Partial<User['metadata']>
 }
 
-// Post-related types
+// Post related types
 export type PostType = 'tip' | 'win' | 'question' | 'resource' | 'general'
 
 export interface Post extends CosmicObject {
-  type: 'posts'
   metadata: {
     content: string
     author: User
-    post_type: {
-      key: PostType
-      value: string
-    }
+    post_type: { key: PostType; value: string }
     featured_image?: {
       url: string
       imgix_url: string
     }
-    tags?: string[]
+    tags: string[]
     likes_count?: number
     comments_count?: number
     featured_post: boolean
@@ -90,11 +93,10 @@ export interface Post extends CosmicObject {
   }
 }
 
-// Blog article types
+// Blog related types
 export type BlogCategory = 'sales-tips' | 'networking' | 'career-growth' | 'saas-industry' | 'community' | 'tools-resources'
 
 export interface BlogArticle extends CosmicObject {
-  type: 'blog-articles'
   metadata: {
     headline: string
     excerpt: string
@@ -104,10 +106,7 @@ export interface BlogArticle extends CosmicObject {
       imgix_url: string
     }
     author: User
-    category: {
-      key: BlogCategory
-      value: string
-    }
+    category: { key: BlogCategory; value: string }
     tags: string[]
     seo_title?: string
     seo_description?: string
@@ -117,48 +116,37 @@ export interface BlogArticle extends CosmicObject {
   }
 }
 
-// Coffee chat types
+// Coffee Chat related types
 export type ChatStatus = 'scheduled' | 'completed' | 'cancelled' | 'no-show'
 
 export interface CoffeeChat extends CosmicObject {
-  type: 'coffee-chats'
   metadata: {
     chat_title: string
     participant_1: User
     participant_2: User
     scheduled_date: string
-    status: {
-      key: ChatStatus
-      value: string
-    }
+    status: { key: ChatStatus; value: string }
     meeting_link?: string
     calendly_event_id?: string
     notes?: string
-    feedback_participant_1?: string | null
-    feedback_participant_2?: string | null
-    rating?: {
-      key: string
-      value: string
-    }
+    feedback_participant_1?: string
+    feedback_participant_2?: string
+    rating?: { key: string; value: string }
     week_of_match?: string
     auto_generated: boolean
   }
 }
 
-// Call to action types
+// Call to Action types
 export type CTAType = 'homepage-hero' | 'homepage-secondary' | 'blog-sidebar' | 'footer' | 'dashboard'
 
 export interface CallToAction extends CosmicObject {
-  type: 'call-to-actions'
   metadata: {
     cta_title: string
     cta_description: string
     button_text: string
     button_link: string
-    cta_type: {
-      key: CTAType
-      value: string
-    }
+    cta_type: { key: CTAType; value: string }
     background_color?: string
     text_color?: string
     active: boolean
@@ -166,22 +154,18 @@ export interface CallToAction extends CosmicObject {
   }
 }
 
-// Admin settings types
+// Admin Settings types
 export interface AdminSettings extends CosmicObject {
-  type: 'admin-settings'
   metadata: {
     site_title: string
     site_description: string
     matching_enabled: boolean
-    weekly_match_day: {
-      key: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
-      value: string
-    }
+    weekly_match_day: { key: string; value: string }
     max_chats_per_week: number
-    welcome_email_enabled?: boolean
-    match_notification_enabled?: boolean
-    community_feed_enabled?: boolean
-    donation_enabled?: boolean
+    welcome_email_enabled: boolean
+    match_notification_enabled: boolean
+    community_feed_enabled: boolean
+    donation_enabled: boolean
     stripe_public_key?: string
     calendly_url?: string
     contact_email?: string
@@ -189,11 +173,12 @@ export interface AdminSettings extends CosmicObject {
       twitter?: string
       linkedin?: string
       github?: string
+      [key: string]: string | undefined
     }
   }
 }
 
-// API response types
+// API Response types
 export interface ApiResponse<T = any> {
   success: boolean
   data?: T
@@ -201,73 +186,25 @@ export interface ApiResponse<T = any> {
   message?: string
 }
 
-// Authentication types
-export interface AuthUser {
-  id: string
-  email: string
-  name: string
-  image?: string
-  cosmicId?: string
-  role?: 'admin' | 'member'
-}
-
-// Matching statistics
-export interface MatchingStats {
-  totalMatches: number
-  completedMatches: number
-  cancelledMatches: number
-  upcomingMatches: number
-  averageRating: number
-}
-
-// Form types
-export interface SignupFormData {
-  full_name: string
-  email: string
-  password: string
-  job_title: string
-  company: string
-  bio?: string
-  timezone: string
-  availability: string[]
-  years_experience: string
-  industry_focus: string[]
-}
-
-export interface SigninFormData {
-  email: string
-  password: string
-}
-
-export interface ProfileFormData {
-  full_name: string
-  job_title: string
-  company: string
-  bio?: string
-  linkedin_url?: string
-  twitter_url?: string
-  website_url?: string
-  timezone: string
-  availability: string[]
-  years_experience: string
-  industry_focus: string[]
-}
-
 // Filter types
 export interface BlogFilters {
-  category: BlogCategory | 'all'
-  search: string
+  category?: BlogCategory
+  search?: string
+  featured?: boolean
 }
 
 export interface PostFilters {
-  type: PostType | 'all'
+  type?: PostType
   author?: string
+  search?: string
+  featured?: boolean
 }
 
 export interface ChatFilters {
-  status: ChatStatus | 'all'
+  status?: ChatStatus
+  participant?: string
   dateRange?: {
-    from: Date
-    to: Date
+    start: string
+    end: string
   }
 }

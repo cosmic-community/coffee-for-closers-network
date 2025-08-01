@@ -12,6 +12,28 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 }
 
+export async function sendVerificationEmail(
+  email: string,
+  name: string,
+  token: string
+): Promise<boolean> {
+  const verificationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/verify-email?token=${token}`
+  
+  const emailOptions: EmailOptions = {
+    to: email,
+    subject: 'Verify Your Email - Coffee for Closers',
+    html: `
+      <h1>Welcome ${name}!</h1>
+      <p>Please verify your email address by clicking the link below:</p>
+      <a href="${verificationUrl}">Verify Email</a>
+      <p>This link will expire in 24 hours.</p>
+    `,
+    text: `Welcome ${name}! Please verify your email by clicking this link: ${verificationUrl}. This link will expire in 24 hours.`
+  }
+
+  return sendEmail(emailOptions)
+}
+
 export function createWelcomeEmailTemplate(userName: string): EmailTemplate {
   return {
     subject: 'Welcome to Coffee for Closers!',
