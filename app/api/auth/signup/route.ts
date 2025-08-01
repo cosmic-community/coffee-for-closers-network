@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hashPassword, validatePassword } from '@/lib/password'
 import { createUser, getUserByEmail } from '@/lib/cosmic'
-import { CreateUserData } from '@/types/user'
+import { CreateUserData } from '@/types'
 import { 
   validateEmail, 
   validateName, 
@@ -12,7 +12,7 @@ import {
   validateLinkedInUrl,
   validateTwitterUrl,
   validateAvailability
-} from '@/lib/validations/user'
+} from '@/lib/validations/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -178,8 +178,8 @@ export async function POST(request: NextRequest) {
     const newUser = await createUser(userData)
 
     // Return success (don't include sensitive data) - handle potentially undefined metadata safely
-    const userEmail = newUser.metadata?.email || email
-    const userName = newUser.metadata?.full_name || fullName
+    const userEmail = newUser.metadata?.email ?? email
+    const userName = newUser.metadata?.full_name ?? fullName
     
     return NextResponse.json({
       success: true,

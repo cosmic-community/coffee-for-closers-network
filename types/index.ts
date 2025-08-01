@@ -24,9 +24,9 @@ export interface UserMetadata {
     url: string
     imgix_url: string
   }
-  timezone: string
+  timezone: string | { key: string; value: string }
   availability: string[]
-  years_experience: string
+  years_experience: string | { key: string; value: string }
   industry_focus: string[]
   linkedin_url: string
   twitter_url: string
@@ -60,7 +60,32 @@ export interface AuthUser {
 export interface CreateUserData {
   title: string
   slug: string
-  metadata: Partial<UserMetadata>
+  metadata: {
+    full_name: string
+    email: string
+    password_hash: string
+    role: string
+    job_title: string
+    company: string
+    bio?: string
+    profile_photo?: {
+      url: string
+      imgix_url: string
+    }
+    timezone: string
+    availability: string[]
+    years_experience: string
+    industry_focus: string[]
+    linkedin_url?: string
+    twitter_url?: string
+    website_url?: string
+    active_member: boolean
+    join_date: string
+    last_active: string
+    onboarding_step?: number
+    onboarding_completed?: boolean
+    profile_completed?: boolean
+  }
 }
 
 // Auth context types

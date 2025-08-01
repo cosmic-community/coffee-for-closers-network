@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { getAllUsers, createUser } from '@/lib/cosmic'
 import { hashPassword, validatePassword } from '@/lib/password'
-import { CreateUserData } from '@/types/user'
+import { CreateUserData } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -130,8 +130,8 @@ export async function POST(request: NextRequest) {
         twitter_url: twitterUrl,
         website_url: websiteUrl,
         active_member: true,
-        join_date: new Date().toISOString().split('T')[0] || '',
-        last_active: new Date().toISOString().split('T')[0] || ''
+        join_date: new Date().toISOString().split('T')[0],
+        last_active: new Date().toISOString().split('T')[0]
       }
     }
 

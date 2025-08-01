@@ -20,13 +20,15 @@ export default function ProfilePage() {
     
     // If user hasn't completed welcome step, redirect back
     // Use optional chaining to safely access potentially undefined properties
-    if (!user?.metadata?.onboarding_step || user.metadata.onboarding_step < 1) {
+    const onboardingStep = user?.metadata?.onboarding_step
+    if (!onboardingStep || onboardingStep < 1) {
       router.push('/onboarding/welcome')
       return
     }
 
     // If user is already fully onboarded, redirect to dashboard
-    if (user.metadata?.onboarding_completed) {
+    const onboardingCompleted = user?.metadata?.onboarding_completed
+    if (onboardingCompleted) {
       router.push('/dashboard')
       return
     }

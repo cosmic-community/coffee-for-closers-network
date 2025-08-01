@@ -24,11 +24,24 @@ interface ProfileData {
 
 export function ProfileSetup() {
   const { user } = useAuth()
+  
+  // Extract string values from metadata safely
+  const getStringValue = (value: string | { key: string; value: string } | undefined): string => {
+    if (!value) return ''
+    if (typeof value === 'string') {
+      return value
+    }
+    if (typeof value === 'object' && 'value' in value) {
+      return value.value
+    }
+    return ''
+  }
+
   const [profileData, setProfileData] = useState<ProfileData>({
     bio: user?.metadata?.bio || '',
-    timezone: user?.metadata?.timezone || 'EST',
+    timezone: getStringValue(user?.metadata?.timezone) || 'EST',
     availability: user?.metadata?.availability || [],
-    yearsExperience: user?.metadata?.years_experience || '0-2',
+    yearsExperience: getStringValue(user?.metadata?.years_experience) || '0-2',
     industryFocus: user?.metadata?.industry_focus || [],
     linkedinUrl: user?.metadata?.linkedin_url || ''
   })
@@ -52,18 +65,6 @@ export function ProfileSetup() {
         ? prev.industryFocus.filter(i => i !== industry)
         : [...prev.industryFocus, industry]
     }))
-  }
-
-  // Extract string values from role metadata safely
-  const getStringValue = (value: string | { key: string; value: string } | undefined): string => {
-    if (!value) return ''
-    if (typeof value === 'string') {
-      return value
-    }
-    if (typeof value === 'object' && 'value' in value) {
-      return value.value
-    }
-    return ''
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

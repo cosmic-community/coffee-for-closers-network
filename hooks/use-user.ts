@@ -5,7 +5,8 @@ import { useAuth } from './use-auth'
 import { User } from '@/types'
 
 export function useUser(userId?: string) {
-  const { user: currentUser, isAuthenticated, isAdmin } = useAuth()
+  const { user: currentUser, isAuthenticated } = useAuth()
+  const { isAdmin } = useAuth()
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
