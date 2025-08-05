@@ -28,3 +28,7 @@ export function calculateMatchingStats(chats: any[]): MatchingStats {
     averageRating
   }
 }
+
+export function getMatchingStats(chats: any[]): MatchingStats {
+  return calculateMatchingStats(chats)
+}
