@@ -122,6 +122,38 @@ export function validateUrl(url: string, fieldName: string): ValidationResult {
   }
 }
 
+export function validateLinkedInUrl(url: string): ValidationResult {
+  const errors: string[] = []
+  
+  if (url) {
+    const linkedinRegex = /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/
+    if (!linkedinRegex.test(url)) {
+      errors.push('Please enter a valid LinkedIn profile URL')
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
+export function validateTwitterUrl(url: string): ValidationResult {
+  const errors: string[] = []
+  
+  if (url) {
+    const twitterRegex = /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?$/
+    if (!twitterRegex.test(url)) {
+      errors.push('Please enter a valid Twitter/X profile URL')
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
 export function validateBio(bio: string): ValidationResult {
   const errors: string[] = []
 

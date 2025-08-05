@@ -111,6 +111,8 @@ export async function POST(request: NextRequest) {
     const emailPrefix = email.split('@')[0] || 'user'
     const userSlug = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'user'
 
+    const currentDate = new Date().toISOString().split('T')[0] || ''
+
     const userData: CreateUserData = {
       title: fullName,
       slug: userSlug,
@@ -130,8 +132,8 @@ export async function POST(request: NextRequest) {
         twitter_url: twitterUrl,
         website_url: websiteUrl,
         active_member: true,
-        join_date: new Date().toISOString().split('T')[0],
-        last_active: new Date().toISOString().split('T')[0]
+        join_date: currentDate,
+        last_active: currentDate
       }
     }
 
@@ -141,9 +143,9 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         id: newUser.id,
-        email: newUser.metadata?.email ?? email,
-        name: newUser.metadata?.full_name ?? fullName,
-        role: newUser.metadata?.role ?? role
+        email: newUser.metadata?.email || email,
+        name: newUser.metadata?.full_name || fullName,
+        role: newUser.metadata?.role || role
       }
     })
 

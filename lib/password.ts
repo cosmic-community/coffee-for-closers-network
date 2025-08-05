@@ -29,6 +29,47 @@ export function generateSecurePassword(length: number = 16): string {
   return password.split('').sort(() => Math.random() - 0.5).join('')
 }
 
+export function validatePassword(password: string): {
+  isValid: boolean
+  errors: string[]
+} {
+  const errors: string[] = []
+
+  if (!password) {
+    errors.push('Password is required')
+    return { isValid: false, errors }
+  }
+
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters')
+  }
+  
+  if (password.length > 128) {
+    errors.push('Password must be less than 128 characters')
+  }
+  
+  if (!/(?=.*[a-z])/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter')
+  }
+  
+  if (!/(?=.*[A-Z])/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter')
+  }
+  
+  if (!/(?=.*\d)/.test(password)) {
+    errors.push('Password must contain at least one number')
+  }
+  
+  if (!/(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password)) {
+    errors.push('Password must contain at least one special character')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
 export function validatePasswordStrength(password: string): {
   score: number
   feedback: string[]
@@ -93,7 +134,7 @@ export function validatePasswordStrength(password: string): {
   }
 
   return {
-    score: Math.min(score, 6), // Cap at 6
+    score: Math.min(score, 6),
     feedback,
     isStrong: score >= 5
   }

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const userSlug = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '-') || `user-${Date.now()}`
     
     // Get current date in YYYY-MM-DD format
-    const currentDate = new Date().toISOString().split('T')[0]
+    const currentDate = new Date().toISOString().split('T')[0] || ''
     
     // Prepare user data
     const userData: CreateUserData = {
@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
     })
 
     // Return success with minimal user data - handle potentially undefined metadata safely
-    const userEmail = newUser.metadata?.email ?? email
-    const userName = newUser.metadata?.full_name ?? fullName
+    const userEmail = newUser.metadata?.email || email
+    const userName = newUser.metadata?.full_name || fullName
     
     return NextResponse.json({
       success: true,

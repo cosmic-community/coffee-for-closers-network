@@ -60,7 +60,7 @@ export function useOnboarding() {
     isLoading,
     updateOnboardingStep,
     completeOnboarding,
-    currentStep: user?.metadata?.onboarding_step ?? 0,
-    isCompleted: user?.metadata?.onboarding_completed ?? false
+    currentStep: user?.metadata?.onboarding_step || 0,
+    isCompleted: user?.metadata?.onboarding_completed || false
   }
 }

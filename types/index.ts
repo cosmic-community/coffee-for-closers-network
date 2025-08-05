@@ -10,13 +10,11 @@ export interface User {
   metadata: {
     full_name: string
     email: string
-    role: {
-      key: string
-      value: 'Member' | 'Admin'
-    }
+    password_hash: string
+    role: 'admin' | 'member' | { key: string; value: string }
     job_title: string
     company: string
-    bio?: string
+    bio: string
     profile_photo?: {
       url: string
       imgix_url: string
@@ -24,22 +22,21 @@ export interface User {
     linkedin_url?: string
     twitter_url?: string
     website_url?: string
-    timezone: {
-      key: string
-      value: string
-    }
+    timezone: string | { key: string; value: string }
     availability: string[]
-    years_experience: {
-      key: string
-      value: string
-    }
+    years_experience: string | { key: string; value: string }
     industry_focus: string[]
     active_member: boolean
-    join_date?: string
-    last_active?: string
-    password_hash?: string
+    join_date: string
+    last_active: string
     email_verified?: boolean
     email_verification_token?: string
+    password_reset_token?: string
+    password_reset_expires?: string
+    password_reset_at?: string
+    onboarding_step?: number
+    onboarding_completed?: boolean
+    profile_completed?: boolean
   }
 }
 
@@ -200,6 +197,16 @@ export interface AuthUser {
   cosmicId: string
 }
 
+export interface AuthContextType {
+  user: AuthUser | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  isAdmin: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  refreshUser: () => Promise<void>
+}
+
 export interface ApiResponse<T = any> {
   success: boolean
   data?: T
@@ -207,13 +214,14 @@ export interface ApiResponse<T = any> {
   error?: string
 }
 
-export interface SignupData {
+export interface SignupFormData {
   fullName: string
   email: string
   password: string
+  confirmPassword: string
   jobTitle: string
   company: string
-  bio?: string
+  bio: string
   timezone: string
   availability: string[]
   yearsExperience: string
@@ -223,15 +231,54 @@ export interface SignupData {
   websiteUrl?: string
 }
 
+export interface CreateUserData {
+  title: string
+  slug: string
+  metadata: Omit<User['metadata'], 'email_verified' | 'email_verification_token'>
+}
+
 export interface LoginData {
   email: string
   password: string
 }
 
 export interface OnboardingData {
-  profileCompleted: boolean
-  preferencesSet: boolean
-  firstChatScheduled: boolean
+  step?: number
+  completed?: boolean
+  profileCompleted?: boolean
+  emailVerified?: boolean
+  onboarding_step?: number
+  onboarding_completed?: boolean
+  profile_completed?: boolean
+}
+
+export interface JWTPayload {
+  userId: string
+  email: string
+  role: string
+  exp?: number
+  iat?: number
+}
+
+export interface EmailOptions {
+  to: string
+  subject: string
+  html: string
+  text: string
+}
+
+export interface EmailTemplate {
+  subject: string
+  html: string
+  text: string
+}
+
+export interface MatchingStats {
+  totalMatches: number
+  completedMatches: number
+  cancelledMatches: number
+  upcomingMatches: number
+  averageRating: number
 }
 
 export interface NotificationPreferences {

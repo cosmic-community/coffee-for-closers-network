@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SignupFormData } from '@/types/user'
-import { validateSignupForm } from '@/lib/validations/user'
+import { SignupFormData } from '@/types'
 import toast from 'react-hot-toast'
 
 interface UseSignupReturn {
@@ -32,6 +31,23 @@ const initialFormData: SignupFormData = {
   linkedinUrl: '',
   twitterUrl: '',
   websiteUrl: ''
+}
+
+function validateSignupForm(data: SignupFormData): { isValid: boolean; errors: string[] } {
+  const errors: string[] = []
+
+  if (!data.fullName.trim()) errors.push('Full name is required')
+  if (!data.email.trim()) errors.push('Email is required')
+  if (!data.password) errors.push('Password is required')
+  if (data.password !== data.confirmPassword) errors.push('Passwords do not match')
+  if (!data.jobTitle.trim()) errors.push('Job title is required')
+  if (!data.company.trim()) errors.push('Company is required')
+  if (data.availability.length === 0) errors.push('Please select at least one availability slot')
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 export function useSignup(): UseSignupReturn {
@@ -92,7 +108,7 @@ export function useSignup(): UseSignupReturn {
           password: formData.password,
           jobTitle: formData.jobTitle,
           company: formData.company,
-          bio: formData.bio,
+          bio: formData.bio || '',
           timezone: formData.timezone,
           availability: formData.availability,
           yearsExperience: formData.yearsExperience,
