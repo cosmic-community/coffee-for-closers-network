@@ -1,25 +1,44 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['@cosmicjs/sdk']
+  },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'imgix.cosmicjs.com',
-        port: '',
-        pathname: '/**',
+        hostname: 'cdn.cosmicjs.com',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.cosmicjs.com',
-        port: '',
-        pathname: '/**',
+        hostname: 'imgix.cosmicjs.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      }
     ],
   },
-  env: {
-    COSMIC_BUCKET_SLUG: process.env.COSMIC_BUCKET_SLUG,
-    COSMIC_READ_KEY: process.env.COSMIC_READ_KEY,
-    COSMIC_WRITE_KEY: process.env.COSMIC_WRITE_KEY,
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ]
   },
 }
 

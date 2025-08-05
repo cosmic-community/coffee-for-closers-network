@@ -1,69 +1,100 @@
 import bcrypt from 'bcryptjs'
-import { ValidationResult } from '@/types'
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12
-  return bcrypt.hash(password, saltRounds)
+  return await bcrypt.hash(password, saltRounds)
 }
 
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword)
-}
-
-export function validatePassword(password: string): ValidationResult {
-  const errors: string[] = []
-
-  if (!password) {
-    errors.push('Password is required')
-    return { isValid: false, errors }
-  }
-
-  if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long')
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter')
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter')
-  }
-
-  if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number')
-  }
-
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Password must contain at least one special character')
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  }
+  return await bcrypt.compare(password, hashedPassword)
 }
 
 export function generateSecurePassword(length: number = 16): string {
-  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
-  const numbers = '0123456789'
-  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
-  
-  const allChars = uppercase + lowercase + numbers + symbols
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
   let password = ''
   
-  // Ensure at least one character from each category
-  password += uppercase[Math.floor(Math.random() * uppercase.length)]
-  password += lowercase[Math.floor(Math.random() * lowercase.length)]
-  password += numbers[Math.floor(Math.random() * numbers.length)]
-  password += symbols[Math.floor(Math.random() * symbols.length)]
+  // Ensure password contains at least one of each required character type
+  password += 'a' // lowercase
+  password += 'A' // uppercase  
+  password += '1' // number
+  password += '!' // special character
   
   // Fill the rest randomly
   for (let i = 4; i < length; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)]
+    const randomIndex = Math.floor(Math.random() * charset.length)
+    password += charset[randomIndex]
   }
   
   // Shuffle the password
   return password.split('').sort(() => Math.random() - 0.5).join('')
+}
+
+export function validatePasswordStrength(password: string): {
+  score: number
+  feedback: string[]
+  isStrong: boolean
+} {
+  const feedback: string[] = []
+  let score = 0
+
+  // Length check
+  if (password.length >= 8) {
+    score += 1
+  } else {
+    feedback.push('Use at least 8 characters')
+  }
+
+  if (password.length >= 12) {
+    score += 1
+  }
+
+  // Character variety checks
+  if (/[a-z]/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Include lowercase letters')
+  }
+
+  if (/[A-Z]/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Include uppercase letters')
+  }
+
+  if (/\d/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Include numbers')
+  }
+
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    score += 1
+  } else {
+    feedback.push('Include special characters')
+  }
+
+  // Common patterns check
+  if (!/(.)\1{2,}/.test(password)) {
+    score += 0.5
+  } else {
+    feedback.push('Avoid repeating characters')
+  }
+
+  // Common passwords check (basic)
+  const commonPasswords = [
+    'password', '123456', 'password123', 'admin', 'qwerty',
+    'letmein', 'welcome', 'monkey', '1234567890'
+  ]
+  
+  if (!commonPasswords.some(common => password.toLowerCase().includes(common.toLowerCase()))) {
+    score += 0.5
+  } else {
+    feedback.push('Avoid common passwords')
+  }
+
+  return {
+    score: Math.min(score, 6), // Cap at 6
+    feedback,
+    isStrong: score >= 5
+  }
 }

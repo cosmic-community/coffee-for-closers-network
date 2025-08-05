@@ -1,16 +1,17 @@
-import { ValidationResult, SignupFormData } from '@/types'
+interface ValidationResult {
+  isValid: boolean
+  errors: string[]
+}
 
-export function validateEmail(email: string): ValidationResult {
+export function validateName(name: string): ValidationResult {
   const errors: string[] = []
 
-  if (!email) {
-    errors.push('Email is required')
-    return { isValid: false, errors }
-  }
-
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(email)) {
-    errors.push('Please enter a valid email address')
+  if (!name.trim()) {
+    errors.push('Name is required')
+  } else if (name.trim().length < 2) {
+    errors.push('Name must be at least 2 characters')
+  } else if (name.trim().length > 50) {
+    errors.push('Name must be less than 50 characters')
   }
 
   return {
@@ -19,20 +20,16 @@ export function validateEmail(email: string): ValidationResult {
   }
 }
 
-export function validateName(name: string): ValidationResult {
+export function validateEmail(email: string): ValidationResult {
   const errors: string[] = []
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-  if (!name) {
-    errors.push('Full name is required')
-    return { isValid: false, errors }
-  }
-
-  if (name.trim().length < 2) {
-    errors.push('Full name must be at least 2 characters long')
-  }
-
-  if (name.trim().length > 100) {
-    errors.push('Full name must be less than 100 characters')
+  if (!email.trim()) {
+    errors.push('Email is required')
+  } else if (!emailRegex.test(email.trim())) {
+    errors.push('Please enter a valid email address')
+  } else if (email.length > 255) {
+    errors.push('Email must be less than 255 characters')
   }
 
   return {
@@ -44,16 +41,11 @@ export function validateName(name: string): ValidationResult {
 export function validateJobTitle(jobTitle: string): ValidationResult {
   const errors: string[] = []
 
-  if (!jobTitle) {
+  if (!jobTitle.trim()) {
     errors.push('Job title is required')
-    return { isValid: false, errors }
-  }
-
-  if (jobTitle.trim().length < 2) {
-    errors.push('Job title must be at least 2 characters long')
-  }
-
-  if (jobTitle.trim().length > 100) {
+  } else if (jobTitle.trim().length < 2) {
+    errors.push('Job title must be at least 2 characters')
+  } else if (jobTitle.trim().length > 100) {
     errors.push('Job title must be less than 100 characters')
   }
 
@@ -66,17 +58,62 @@ export function validateJobTitle(jobTitle: string): ValidationResult {
 export function validateCompany(company: string): ValidationResult {
   const errors: string[] = []
 
-  if (!company) {
+  if (!company.trim()) {
     errors.push('Company is required')
-    return { isValid: false, errors }
+  } else if (company.trim().length < 2) {
+    errors.push('Company must be at least 2 characters')
+  } else if (company.trim().length > 100) {
+    errors.push('Company must be less than 100 characters')
   }
 
-  if (company.trim().length < 2) {
-    errors.push('Company name must be at least 2 characters long')
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
+export function validatePassword(password: string): ValidationResult {
+  const errors: string[] = []
+
+  if (!password) {
+    errors.push('Password is required')
+  } else {
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters')
+    }
+    if (password.length > 128) {
+      errors.push('Password must be less than 128 characters')
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter')
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter')
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      errors.push('Password must contain at least one number')
+    }
+    if (!/(?=.*[!@#$%^&*(),.?":{}|<>])/.test(password)) {
+      errors.push('Password must contain at least one special character')
+    }
   }
 
-  if (company.trim().length > 100) {
-    errors.push('Company name must be less than 100 characters')
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
+export function validateUrl(url: string, fieldName: string): ValidationResult {
+  const errors: string[] = []
+  const urlRegex = /^https?:\/\/.+/
+
+  if (url && !urlRegex.test(url)) {
+    errors.push(`${fieldName} must be a valid URL starting with http:// or https://`)
+  }
+
+  if (url && url.length > 500) {
+    errors.push(`${fieldName} must be less than 500 characters`)
   }
 
   return {
@@ -98,72 +135,32 @@ export function validateBio(bio: string): ValidationResult {
   }
 }
 
-export function validateUrl(url: string, fieldName: string): ValidationResult {
-  const errors: string[] = []
-
-  if (!url) {
-    return { isValid: true, errors }
-  }
-
-  try {
-    new URL(url)
-  } catch {
-    errors.push(`${fieldName} must be a valid URL`)
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  }
-}
-
-export function validateLinkedInUrl(url: string): ValidationResult {
-  const errors: string[] = []
-
-  if (!url) {
-    return { isValid: true, errors }
-  }
-
-  if (!url.includes('linkedin.com')) {
-    errors.push('LinkedIn URL must be a valid LinkedIn profile URL')
-  }
-
-  return validateUrl(url, 'LinkedIn URL')
-}
-
-export function validateTwitterUrl(url: string): ValidationResult {
-  const errors: string[] = []
-
-  if (!url) {
-    return { isValid: true, errors }
-  }
-
-  if (!url.includes('twitter.com') && !url.includes('x.com')) {
-    errors.push('Twitter URL must be a valid Twitter/X profile URL')
-  }
-
-  return validateUrl(url, 'Twitter URL')
-}
-
 export function validateAvailability(availability: string[]): ValidationResult {
   const errors: string[] = []
+  const validSlots = [
+    'Monday Morning',
+    'Monday Afternoon',
+    'Tuesday Morning',
+    'Tuesday Afternoon',
+    'Wednesday Morning',
+    'Wednesday Afternoon',
+    'Thursday Morning',
+    'Thursday Afternoon',
+    'Friday Morning',
+    'Friday Afternoon'
+  ]
 
-  if (!availability || availability.length === 0) {
+  if (availability.length === 0) {
     errors.push('Please select at least one availability slot')
   }
 
-  const validSlots = [
-    'Monday Morning', 'Monday Afternoon',
-    'Tuesday Morning', 'Tuesday Afternoon',
-    'Wednesday Morning', 'Wednesday Afternoon',
-    'Thursday Morning', 'Thursday Afternoon',
-    'Friday Morning', 'Friday Afternoon'
-  ]
+  if (availability.length > 10) {
+    errors.push('Too many availability slots selected')
+  }
 
-  for (const slot of availability) {
-    if (!validSlots.includes(slot)) {
-      errors.push(`Invalid availability slot: ${slot}`)
-    }
+  const invalidSlots = availability.filter(slot => !validSlots.includes(slot))
+  if (invalidSlots.length > 0) {
+    errors.push('Invalid availability slots selected')
   }
 
   return {
@@ -172,67 +169,58 @@ export function validateAvailability(availability: string[]): ValidationResult {
   }
 }
 
-export function validateSignupForm(data: SignupFormData): ValidationResult {
+export function validateTimezone(timezone: string): ValidationResult {
   const errors: string[] = []
+  const validTimezones = ['EST', 'CST', 'MST', 'PST', 'GMT', 'CET']
 
-  // Validate individual fields
-  const nameValidation = validateName(data.fullName)
-  if (!nameValidation.isValid) {
-    errors.push(...nameValidation.errors)
+  if (!timezone) {
+    errors.push('Timezone is required')
+  } else if (!validTimezones.includes(timezone)) {
+    errors.push('Invalid timezone selected')
   }
 
-  const emailValidation = validateEmail(data.email)
-  if (!emailValidation.isValid) {
-    errors.push(...emailValidation.errors)
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
+export function validateExperience(experience: string): ValidationResult {
+  const errors: string[] = []
+  const validLevels = ['0-2', '3-5', '6-10', '10+']
+
+  if (!experience) {
+    errors.push('Years of experience is required')
+  } else if (!validLevels.includes(experience)) {
+    errors.push('Invalid experience level selected')
   }
 
-  const jobTitleValidation = validateJobTitle(data.jobTitle)
-  if (!jobTitleValidation.isValid) {
-    errors.push(...jobTitleValidation.errors)
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
+
+export function validateIndustryFocus(industries: string[]): ValidationResult {
+  const errors: string[] = []
+  const validIndustries = [
+    'SaaS',
+    'Enterprise Software',
+    'Cloud Services',
+    'Security',
+    'DevTools',
+    'Analytics',
+    'AI/ML',
+    'Other'
+  ]
+
+  if (industries.length > 8) {
+    errors.push('Too many industry focus areas selected')
   }
 
-  const companyValidation = validateCompany(data.company)
-  if (!companyValidation.isValid) {
-    errors.push(...companyValidation.errors)
-  }
-
-  const availabilityValidation = validateAvailability(data.availability)
-  if (!availabilityValidation.isValid) {
-    errors.push(...availabilityValidation.errors)
-  }
-
-  // Validate password confirmation
-  if (data.password !== data.confirmPassword) {
-    errors.push('Passwords do not match')
-  }
-
-  // Validate optional fields
-  if (data.bio) {
-    const bioValidation = validateBio(data.bio)
-    if (!bioValidation.isValid) {
-      errors.push(...bioValidation.errors)
-    }
-  }
-
-  if (data.linkedinUrl) {
-    const linkedinValidation = validateLinkedInUrl(data.linkedinUrl)
-    if (!linkedinValidation.isValid) {
-      errors.push(...linkedinValidation.errors)
-    }
-  }
-
-  if (data.twitterUrl) {
-    const twitterValidation = validateTwitterUrl(data.twitterUrl)
-    if (!twitterValidation.isValid) {
-      errors.push(...twitterValidation.errors)
-    }
-  }
-
-  if (data.websiteUrl) {
-    const websiteValidation = validateUrl(data.websiteUrl, 'Website URL')
-    if (!websiteValidation.isValid) {
-      errors.push(...websiteValidation.errors)
-    }
+  const invalidIndustries = industries.filter(industry => !validIndustries.includes(industry))
+  if (invalidIndustries.length > 0) {
+    errors.push('Invalid industry focus areas selected')
   }
 
   return {

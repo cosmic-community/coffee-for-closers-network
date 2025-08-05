@@ -1,111 +1,344 @@
-export * from './cosmic'
+export interface User {
+  id: string
+  title: string
+  slug?: string
+  type: 'users'
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  published_at?: string
+  metadata: {
+    full_name: string
+    email: string
+    role: {
+      key: string
+      value: 'Member' | 'Admin'
+    }
+    job_title: string
+    company: string
+    bio?: string
+    profile_photo?: {
+      url: string
+      imgix_url: string
+    }
+    linkedin_url?: string
+    twitter_url?: string
+    website_url?: string
+    timezone: {
+      key: string
+      value: string
+    }
+    availability: string[]
+    years_experience: {
+      key: string
+      value: string
+    }
+    industry_focus: string[]
+    active_member: boolean
+    join_date?: string
+    last_active?: string
+    password_hash?: string
+    email_verified?: boolean
+    email_verification_token?: string
+  }
+}
 
-// Additional types for application functionality
-export interface JWTPayload {
-  userId: string
+export interface Post {
+  id: string
+  title: string
+  slug?: string
+  type: 'posts'
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  published_at?: string
+  metadata?: {
+    content: string
+    author?: User
+    post_type?: {
+      key: string
+      value: string
+    }
+    featured_image?: {
+      url: string
+      imgix_url: string
+    }
+    tags?: string[]
+    likes_count?: number
+    comments_count?: number
+    featured_post?: boolean
+    posted_date?: string
+  }
+}
+
+export interface BlogArticle {
+  id: string
+  title: string
+  slug?: string
+  type: 'blog-articles'
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  published_at?: string
+  metadata?: {
+    headline: string
+    excerpt: string
+    content: string
+    featured_image?: {
+      url: string
+      imgix_url: string
+    }
+    author?: User
+    category?: {
+      key: string
+      value: string
+    }
+    tags?: string[]
+    seo_title?: string
+    seo_description?: string
+    published_date?: string
+    read_time?: number
+    featured_article?: boolean
+  }
+}
+
+export interface CoffeeChat {
+  id: string
+  title: string
+  slug?: string
+  type: 'coffee-chats'
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  published_at?: string
+  metadata?: {
+    chat_title: string
+    participant_1?: User
+    participant_2?: User
+    scheduled_date?: string
+    status?: {
+      key: string
+      value: string
+    }
+    meeting_link?: string
+    calendly_event_id?: string
+    notes?: string
+    feedback_participant_1?: string
+    feedback_participant_2?: string
+    rating?: {
+      key: string
+      value: string
+    }
+    week_of_match?: string
+    auto_generated?: boolean
+  }
+}
+
+export interface CallToAction {
+  id: string
+  title: string
+  slug?: string
+  type: 'call-to-actions'
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  published_at?: string
+  metadata: {
+    cta_title: string
+    cta_description: string
+    button_text: string
+    button_link: string
+    cta_type?: {
+      key: string
+      value: string
+    }
+    background_color?: string
+    text_color?: string
+    active?: boolean
+    priority_order?: number
+  }
+}
+
+export interface AdminSettings {
+  id: string
+  title: string
+  slug?: string
+  type: 'admin-settings'
+  status: 'published' | 'draft'
+  created_at: string
+  modified_at: string
+  published_at?: string
+  metadata: {
+    site_title: string
+    site_description: string
+    matching_enabled: boolean
+    weekly_match_day?: {
+      key: string
+      value: string
+    }
+    max_chats_per_week?: number
+    welcome_email_enabled?: boolean
+    match_notification_enabled?: boolean
+    community_feed_enabled?: boolean
+    donation_enabled?: boolean
+    stripe_public_key?: string
+    calendly_url?: string
+    contact_email?: string
+    social_links?: {
+      twitter?: string
+      linkedin?: string
+      github?: string
+    }
+  }
+}
+
+export interface AuthUser {
+  id: string
   email: string
-  role?: string
-  type?: string
-  exp?: number
-  iat?: number
+  name: string
+  role: 'member' | 'admin'
+  cosmicId: string
 }
 
-export interface EmailOptions {
-  to: string
-  subject: string
-  html?: string
-  text?: string
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  message?: string
+  error?: string
 }
 
-export interface EmailTemplate {
-  subject: string
-  html: string
-  text: string
+export interface SignupData {
+  fullName: string
+  email: string
+  password: string
+  jobTitle: string
+  company: string
+  bio?: string
+  timezone: string
+  availability: string[]
+  yearsExperience: string
+  industryFocus: string[]
+  linkedinUrl?: string
+  twitterUrl?: string
+  websiteUrl?: string
 }
 
-export interface ValidationResult {
-  isValid: boolean
-  errors: string[]
-}
-
-export interface MatchingStats {
-  totalMatches: number
-  completedMatches: number
-  cancelledMatches: number
-  upcomingMatches: number
-  averageRating: number
+export interface LoginData {
+  email: string
+  password: string
 }
 
 export interface OnboardingData {
-  onboarding_step?: number
-  onboarding_completed?: boolean
-  profile_completed?: boolean
-  [key: string]: any
+  profileCompleted: boolean
+  preferencesSet: boolean
+  firstChatScheduled: boolean
 }
 
-export interface SignupFormData {
-  fullName: string
-  email: string
-  password: string
-  confirmPassword: string
-  jobTitle: string
-  company: string
-  bio?: string
-  timezone: string
-  availability: string[]
-  yearsExperience: string
-  industryFocus: string[]
-  linkedinUrl?: string
-  twitterUrl?: string
-  websiteUrl?: string
+export interface NotificationPreferences {
+  emailNotifications: boolean
+  pushNotifications: boolean
+  weeklyDigest: boolean
+  matchNotifications: boolean
+  newPostNotifications: boolean
 }
 
-export interface SigninFormData {
-  email: string
-  password: string
+export interface UserProfile extends User {
+  chatsCount: number
+  postsCount: number
+  joinedDate: string
+  lastActive: string
+  connections: number
 }
 
-export interface ProfileFormData {
-  fullName: string
-  jobTitle: string
-  company: string
-  bio?: string
-  timezone: string
-  availability: string[]
-  yearsExperience: string
-  industryFocus: string[]
-  linkedinUrl?: string
-  twitterUrl?: string
-  websiteUrl?: string
+export interface ChatRequest {
+  id: string
+  requester: User
+  recipient: User
+  message?: string
+  preferredTimes: string[]
+  status: 'pending' | 'accepted' | 'declined' | 'expired'
+  createdAt: string
+  expiresAt: string
 }
 
-export interface AuthContextType {
-  user: AuthUser | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  isAdmin: boolean
-  isMember: boolean
-  signOut: () => Promise<void>
-  refreshUser?: () => Promise<void>
+export interface ConnectionRequest {
+  id: string
+  sender: User
+  recipient: User
+  message?: string
+  status: 'pending' | 'accepted' | 'declined'
+  createdAt: string
 }
 
-// Re-export commonly used types for convenience
-export type {
-  User,
-  CreateUserData,
-  UpdateUserData,
-  Post,
-  PostType,
-  BlogArticle,
-  BlogCategory,
-  CoffeeChat,
-  ChatStatus,
-  CallToAction,
-  CTAType,
-  AdminSettings,
-  ApiResponse,
-  AuthUser,
-  BlogFilters,
-  PostFilters,
-  ChatFilters
-} from './cosmic'
+export interface Activity {
+  id: string
+  type: 'chat_completed' | 'post_created' | 'profile_updated' | 'connection_made'
+  user: User
+  description: string
+  createdAt: string
+  metadata?: Record<string, any>
+}
+
+export interface Stats {
+  totalUsers: number
+  totalChats: number
+  totalPosts: number
+  activeUsers: number
+  completedChats: number
+  upcomingChats: number
+}
+
+export interface FilterOptions {
+  industry?: string[]
+  experience?: string[]
+  timezone?: string[]
+  availability?: string[]
+  company?: string
+  jobTitle?: string
+}
+
+export interface SearchFilters {
+  query?: string
+  type?: 'all' | 'users' | 'posts' | 'articles'
+  industry?: string
+  experience?: string
+  sortBy?: 'recent' | 'popular' | 'relevant'
+  dateRange?: 'all' | 'week' | 'month' | 'year'
+}
+
+export interface PaginationParams {
+  page: number
+  limit: number
+  total?: number
+}
+
+export interface CosmicResponse<T> {
+  objects?: T[]
+  object?: T
+  total?: number
+}
+
+export interface FormState {
+  isSubmitting: boolean
+  errors: Record<string, string>
+  touched: Record<string, boolean>
+  values: Record<string, any>
+}
+
+export interface ModalState {
+  isOpen: boolean
+  type?: string
+  data?: any
+}
+
+export interface ToastMessage {
+  id: string
+  type: 'success' | 'error' | 'warning' | 'info'
+  title: string
+  message?: string
+  duration?: number
+  action?: {
+    label: string
+    onClick: () => void
+  }
+}
