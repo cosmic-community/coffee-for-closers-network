@@ -63,7 +63,7 @@ export function useUser(userId?: string) {
       }
 
       const data = await response.json()
-      setUser(prev => prev ? { ...prev, metadata: { ...prev.metadata, ...userData } } : null)
+      setUser((prev: User | null) => prev ? { ...prev, metadata: { ...prev.metadata, ...userData } } : null)
       
       return data.user
     } catch (err) {
@@ -135,7 +135,7 @@ export function useUsers() {
       }
 
       const data = await response.json()
-      setUsers(prev => [...prev, data.user])
+      setUsers((prev: User[]) => [...prev, data.user])
       
       return data.user
     } catch (err) {
@@ -153,7 +153,7 @@ export function useUsers() {
         throw new Error('Failed to delete user')
       }
 
-      setUsers(prev => prev.filter(user => user.id !== userId))
+      setUsers((prev: User[]) => prev.filter((user: User) => user.id !== userId))
     } catch (err) {
       throw err
     }

@@ -57,7 +57,7 @@ export function useSignup(): UseSignupReturn {
   const router = useRouter()
 
   const updateField = (field: keyof SignupFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev: SignupFormData) => ({ ...prev, [field]: value }))
     // Clear validation errors when user starts typing
     if (validationErrors.length > 0) {
       setValidationErrors([])
@@ -65,19 +65,19 @@ export function useSignup(): UseSignupReturn {
   }
 
   const toggleAvailability = (slot: string) => {
-    setFormData(prev => ({
+    setFormData((prev: SignupFormData) => ({
       ...prev,
       availability: prev.availability.includes(slot)
-        ? prev.availability.filter(s => s !== slot)
+        ? prev.availability.filter((s: string) => s !== slot)
         : [...prev.availability, slot]
     }))
   }
 
   const toggleIndustry = (industry: string) => {
-    setFormData(prev => ({
+    setFormData((prev: SignupFormData) => ({
       ...prev,
       industryFocus: prev.industryFocus.includes(industry)
-        ? prev.industryFocus.filter(i => i !== industry)
+        ? prev.industryFocus.filter((i: string) => i !== industry)
         : [...prev.industryFocus, industry]
     }))
   }
@@ -173,13 +173,13 @@ export function useSignupFlow(initialStep: number = 1, maxSteps: number = 3): Us
 
   const nextStep = () => {
     if (currentStep < maxSteps) {
-      setCurrentStep(prev => prev + 1)
+      setCurrentStep((prev: number) => prev + 1)
     }
   }
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1)
+      setCurrentStep((prev: number) => prev - 1)
     }
   }
 

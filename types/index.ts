@@ -195,6 +195,7 @@ export interface AuthUser {
   name: string
   role: 'member' | 'admin'
   cosmicId: string
+  metadata?: User['metadata']
 }
 
 export interface AuthContextType {
