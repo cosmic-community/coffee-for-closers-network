@@ -90,10 +90,10 @@ export const buttonVariants: Variants = {
 
 // Modal animations
 export const modalBackdrop: Variants = {
-  visible: {
+  hidden: {
     opacity: 0
   },
-  show: {
+  visible: {
     opacity: 1,
     transition: {
       duration: 0.2
@@ -102,12 +102,12 @@ export const modalBackdrop: Variants = {
 }
 
 export const modalContent: Variants = {
-  visible: {
+  hidden: {
     opacity: 0,
     scale: 0.9,
     y: 20
   },
-  show: {
+  visible: {
     opacity: 1,
     scale: 1,
     y: 0,
@@ -121,30 +121,35 @@ export const modalContent: Variants = {
 // Slide animations
 export const slideInVariants: Variants = {
   left: {
-    initial: { x: -100, opacity: 0 },
-    animate: { x: 0, opacity: 1 }
+    x: -100,
+    opacity: 0
   },
   right: {
-    initial: { x: 100, opacity: 0 },
-    animate: { x: 0, opacity: 1 }
+    x: 100,
+    opacity: 0
   },
   top: {
-    initial: { y: -100, opacity: 0 },
-    animate: { y: 0, opacity: 1 }
+    y: -100,
+    opacity: 0
   },
   bottom: {
-    initial: { y: 100, opacity: 0 },
-    animate: { y: 0, opacity: 1 }
+    y: 100,
+    opacity: 0
+  },
+  animate: {
+    x: 0,
+    y: 0,
+    opacity: 1
   }
 }
 
 // Text animations
 export const textReveal: Variants = {
-  initial: {
+  hidden: {
     opacity: 0,
     y: 20
   },
-  animate: {
+  visible: {
     opacity: 1,
     y: 0,
     transition: {
@@ -155,11 +160,11 @@ export const textReveal: Variants = {
 }
 
 export const letterAnimation: Variants = {
-  initial: {
+  hidden: {
     opacity: 0,
     y: 50
   },
-  animate: {
+  visible: {
     opacity: 1,
     y: 0,
     transition: {
@@ -218,11 +223,11 @@ export const pulseAnimation: Variants = {
 
 // Form animations
 export const formFieldVariants: Variants = {
-  initial: {
+  hidden: {
     opacity: 0,
     x: -20
   },
-  animate: {
+  visible: {
     opacity: 1,
     x: 0,
     transition: {
@@ -276,12 +281,12 @@ export const mobileMenuVariants: Variants = {
 
 // Notification animations
 export const notificationVariants: Variants = {
-  initial: {
+  hidden: {
     opacity: 0,
     x: 100,
     scale: 0.9
   },
-  animate: {
+  visible: {
     opacity: 1,
     x: 0,
     scale: 1,
@@ -303,11 +308,11 @@ export const notificationVariants: Variants = {
 
 // Tab animations
 export const tabContentVariants: Variants = {
-  initial: {
+  hidden: {
     opacity: 0,
     y: 20
   },
-  animate: {
+  visible: {
     opacity: 1,
     y: 0,
     transition: {
@@ -339,8 +344,8 @@ export const accordionVariants: Variants = {
 
 // Utility functions
 export const createStaggerVariants = (staggerDelay: number = 0.1): Variants => ({
-  initial: { opacity: 0 },
-  animate: {
+  hidden: { opacity: 0 },
+  visible: {
     opacity: 1,
     transition: {
       staggerChildren: staggerDelay
@@ -357,11 +362,11 @@ export const createSlideVariants = (direction: 'left' | 'right' | 'up' | 'down',
   }
 
   return {
-    initial: {
+    hidden: {
       opacity: 0,
       ...offsets[direction]
     },
-    animate: {
+    visible: {
       opacity: 1,
       x: 0,
       y: 0,
@@ -374,11 +379,11 @@ export const createSlideVariants = (direction: 'left' | 'right' | 'up' | 'down',
 }
 
 export const createScaleVariants = (initialScale: number = 0.9): Variants => ({
-  initial: {
+  hidden: {
     opacity: 0,
     scale: initialScale
   },
-  animate: {
+  visible: {
     opacity: 1,
     scale: 1,
     transition: {

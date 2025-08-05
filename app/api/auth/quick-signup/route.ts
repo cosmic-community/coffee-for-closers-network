@@ -100,10 +100,7 @@ export async function POST(request: NextRequest) {
         website_url: '',
         active_member: true,
         join_date: currentDate,
-        last_active: currentDate,
-        onboarding_step: 0,
-        onboarding_completed: false,
-        profile_completed: false
+        last_active: currentDate
       }
     }
 
